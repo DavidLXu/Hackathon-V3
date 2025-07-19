@@ -1,0 +1,13 @@
+# 核心依赖
+flask>=2.0.0
+opencv-python>=4.5.0
+numpy>=1.21.0
+dashscope>=1.13.0
+
+# 可选依赖（在Raspberry Pi上需要）
+# RPi.GPIO>=0.7.0
+
+# 开发依赖
+pytest>=6.0.0
+black>=21.0.0
+flake8>=3.8.0 

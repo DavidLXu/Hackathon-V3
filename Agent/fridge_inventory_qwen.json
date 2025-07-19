@@ -1,0 +1,48 @@
+{
+  "items": {
+    "其他_20250719_165517": {
+      "name": "其他",
+      "category": "非食物",
+      "level": 2,
+      "section": 0,
+      "optimal_temp": 2,
+      "shelf_life_days": -1,
+      "added_time": "2025-07-19T16:55:17.447561",
+      "expiry_date": "2125-06-25T16:55:17.447538",
+      "reasoning": "图片中显示的物品为非食物，根据分类规则，应归类为'非食物'。由于非食物物品需要长期保存，因此选择第2层（冷藏温度2°C）作为存储位置。"
+    }
+  },
+  "level_usage": {
+    "0": {
+      "0": false,
+      "1": false,
+      "2": false,
+      "3": false
+    },
+    "1": {
+      "0": false,
+      "1": false,
+      "2": false,
+      "3": false
+    },
+    "2": {
+      "0": true,
+      "1": false,
+      "2": false,
+      "3": false
+    },
+    "3": {
+      "0": false,
+      "1": false,
+      "2": false,
+      "3": false
+    },
+    "4": {
+      "0": false,
+      "1": false,
+      "2": false,
+      "3": false
+    }
+  },
+  "last_update": "2025-07-19T16:55:17.447567"
+}

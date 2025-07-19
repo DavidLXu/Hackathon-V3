@@ -1,0 +1,1821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧冰箱管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .fridge-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            max-width: 1200px;
+        }
+        
+        .fridge-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 20px 20px 0 0;
+            text-align: center;
+        }
+        
+        .fridge-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .fridge-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .fridge-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            padding: 30px;
+        }
+        
+        .level-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .level-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .level-emoji {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+        
+        .level-title {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .level-temp {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .section {
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .section.occupied {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .section.empty {
+            background: #f8f9fa;
+            color: #666;
+            border: 2px dashed #ddd;
+        }
+        
+        .items-container {
+            padding: 30px;
+        }
+        
+        .item-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .item-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .item-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .item-emoji {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+        
+        .item-info h5 {
+            margin: 0;
+            color: #333;
+        }
+        
+        .item-location {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .progress-container {
+            margin-top: 15px;
+        }
+        
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        
+        .progress-text {
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+        }
+        
+        .expired {
+            background: #dc3545 !important;
+        }
+        
+        .expiring-soon {
+            background: #fd7e14 !important;
+        }
+        
+        .fresh {
+            background: #28a745 !important;
+        }
+        
+        .long_term {
+            background: #20c997 !important;
+        }
+        
+        .recommendations {
+            padding: 30px;
+        }
+        
+        .recommendation-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #667eea;
+        }
+        
+        .recommendation-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .recommendation-message {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .recommendation-action {
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .recommendation-items {
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .item-emoji {
+            font-size: 1.5em;
+            margin: 0 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .item-emoji:hover {
+            transform: scale(1.2);
+        }
+        
+        .time-advice-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .time-advice-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .time-advice-content p {
+            margin: 5px 0;
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+        
+        .category-info-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .category-info-title {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .category-info-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .category-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+        
+        .category-icon {
+            font-size: 1.2em;
+            min-width: 20px;
+        }
+        
+        .preferences-section {
+            margin-bottom: 20px;
+        }
+        
+        .preferences-section h5 {
+            color: #495057;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 5px;
+        }
+        
+        .preference-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 6px;
+            background: #f8f9fa;
+            transition: background-color 0.2s;
+        }
+        
+        .preference-item:hover {
+            background: #e9ecef;
+        }
+        
+        .preference-item input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        
+        .preference-item label {
+            font-size: 1em;
+            color: #495057;
+            cursor: pointer;
+            margin: 0;
+        }
+        
+        .urgency-low {
+            border-left: 5px solid #28a745;
+        }
+        
+        .urgency-medium {
+            border-left: 5px solid #ffc107;
+        }
+        
+        .urgency-high {
+            border-left: 5px solid #dc3545;
+        }
+        
+        .advice-greeting {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        
+        .advice-main {
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
+        
+        .advice-tips, .advice-cooking {
+            margin-top: 15px;
+        }
+        
+        .advice-tips h6, .advice-cooking h6 {
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 8px;
+        }
+        
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        
+        .control-buttons {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 1000;
+        }
+        
+        .control-btn {
+            width: 120px;
+            height: 50px;
+            border-radius: 25px;
+            border: none;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .proximity-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+        
+        .place-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+        
+        .takeout-btn {
+            background: linear-gradient(45deg, #fd7e14, #e83e8c);
+        }
+        
+        .preferences-btn {
+            background: linear-gradient(45deg, #6f42c1, #e83e8c);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+        
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            opacity: 0.7;
+        }
+        
+        .modal-body {
+            padding: 30px;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: #667eea;
+        }
+        
+        .upload-area i {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .proximity-recommendation {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .proximity-greeting {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .proximity-main {
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+        
+        .proximity-tip {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .urgency-high {
+            border-left: 5px solid #dc3545;
+        }
+        
+        .urgency-medium {
+            border-left: 5px solid #fd7e14;
+        }
+        
+        .urgency-low {
+            border-left: 5px solid #28a745;
+        }
+        
+        .takeout-mode .item-card {
+            opacity: 0.6;
+            transform: scale(0.95);
+        }
+        
+        .takeout-mode .item-card.recommended {
+            opacity: 1;
+            transform: scale(1);
+            border: 3px solid #fd7e14;
+            box-shadow: 0 10px 25px rgba(253, 126, 20, 0.3);
+        }
+        
+        .takeout-mode .item-card.recommended .item-header {
+            background: linear-gradient(45deg, #fd7e14, #e83e8c);
+            color: white;
+            border-radius: 10px;
+            padding: 10px;
+            margin: -10px -10px 10px -10px;
+        }
+        
+        .takeout-mode .takeout-btn {
+            display: block !important;
+        }
+        
+        .takeout-btn {
+            background: linear-gradient(45deg, #fd7e14, #e83e8c);
+            border: none;
+            color: white;
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            border-radius: 15px;
+            transition: transform 0.3s ease;
+        }
+        
+        .takeout-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        @media (max-width: 768px) {
+            .fridge-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .control-buttons {
+                bottom: 20px;
+                left: 20px;
+            }
+            
+            .control-btn {
+                width: 100px;
+                height: 45px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="fridge-container">
+            <!-- 头部 -->
+            <div class="fridge-header">
+                <div class="fridge-title">
+                    <i class="fas fa-snowflake"></i> 智慧冰箱管理系统
+                </div>
+                <div class="fridge-subtitle">
+                    实时监控 · 智能推荐 · 过期提醒
+                </div>
+            </div>
+            
+            <!-- 统计卡片 -->
+            <div class="stats-cards" id="statsCards">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> 加载中...
+                </div>
+            </div>
+            
+            <!-- 冰箱网格 -->
+            <div class="fridge-grid" id="fridgeGrid">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> 加载中...
+                </div>
+            </div>
+            
+            <!-- 物品列表 -->
+            <div class="items-container">
+                <h4><i class="fas fa-list"></i> 冰箱物品</h4>
+                <div id="itemsList">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i> 加载中...
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 智能推荐 -->
+            <div class="recommendations">
+                <h4><i class="fas fa-lightbulb"></i> 智能推荐</h4>
+                <div id="recommendationsList">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i> 加载中...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 控制按钮 -->
+    <div class="control-buttons">
+        <button class="control-btn proximity-btn" onclick="triggerProximitySensor()">
+            <i class="fas fa-user"></i>
+            <span>接近传感器</span>
+        </button>
+        <button class="control-btn place-btn" onclick="placeItem()">
+            <i class="fas fa-plus"></i>
+            <span>放入物品</span>
+        </button>
+        <button class="control-btn takeout-btn" onclick="showTakeOutMode()">
+            <i class="fas fa-minus"></i>
+            <span>取出物品</span>
+        </button>
+        <button class="control-btn preferences-btn" onclick="showPreferences()">
+            <i class="fas fa-cog"></i>
+            <span>偏好设置</span>
+        </button>
+    </div>
+    
+    <!-- 刷新按钮 -->
+    <button class="refresh-btn" onclick="refreshData()">
+        <i class="fas fa-sync-alt"></i>
+    </button>
+    
+    <!-- 接近传感器弹窗 -->
+    <div id="proximityModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user"></i> 个性化推荐</h3>
+                <span class="close" onclick="closeProximityModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="proximityContent">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> 分析中...
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 文件上传弹窗 -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-upload"></i> 选择图片</h3>
+                <span class="close" onclick="closeUploadModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="previewImage()">
+                <div class="upload-area" onclick="document.getElementById('imageInput').click()">
+                    <i class="fas fa-cloud-upload-alt fa-3x"></i>
+                    <p>点击选择图片</p>
+                </div>
+                <div id="imagePreview" style="display: none; margin-top: 20px;">
+                    <img id="previewImg" style="max-width: 100%; max-height: 200px; border-radius: 10px;">
+                    <p class="text-center mt-2" id="fileName"></p>
+                </div>
+                <button class="btn btn-primary mt-3" onclick="confirmPlaceItem()" id="confirmBtn" disabled>确认放入</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 偏好设置弹窗 -->
+    <div id="preferencesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-cog"></i> 用户偏好设置</h3>
+                <span class="close" onclick="closePreferencesModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="preferences-section">
+                    <h5>食物偏好</h5>
+                    <div class="preference-item">
+                        <input type="checkbox" id="pref-fruits" checked>
+                        <label for="pref-fruits">🍎 水果</label>
+                    </div>
+                    <div class="preference-item">
+                        <input type="checkbox" id="pref-vegetables" checked>
+                        <label for="pref-vegetables">🥬 蔬菜</label>
+                    </div>
+                    <div class="preference-item">
+                        <input type="checkbox" id="pref-meat" checked>
+                        <label for="pref-meat">🥩 肉类</label>
+                    </div>
+                    <div class="preference-item">
+                        <input type="checkbox" id="pref-dairy" checked>
+                        <label for="pref-dairy">🥛 乳制品</label>
+                    </div>
+                    <div class="preference-item">
+                        <input type="checkbox" id="pref-grains" checked>
+                        <label for="pref-grains">🍞 谷物</label>
+                    </div>
+                    <div class="preference-item">
+                        <input type="checkbox" id="pref-seafood" checked>
+                        <label for="pref-seafood">🐟 海鲜</label>
+                    </div>
+                    <div class="preference-item">
+                        <input type="checkbox" id="pref-desserts" checked>
+                        <label for="pref-desserts">🍰 甜点</label>
+                    </div>
+                    <div class="preference-item">
+                        <input type="checkbox" id="pref-beverages" checked>
+                        <label for="pref-beverages">🥤 饮料</label>
+                    </div>
+                </div>
+                <div class="preferences-section">
+                    <h5>其他物品</h5>
+                    <div class="preference-item">
+                        <input type="checkbox" id="pref-instruments">
+                        <label for="pref-instruments">🎵 乐器</label>
+                    </div>
+                    <div class="preference-item">
+                        <input type="checkbox" id="pref-tools">
+                        <label for="pref-tools">🔧 工具</label>
+                    </div>
+                </div>
+                <button class="btn btn-primary mt-3" onclick="savePreferences()">保存偏好设置</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 全局变量
+        let fridgeData = null;
+        let isPlaceMode = false;
+        let isTakeOutMode = false;
+        let userPreferences = {
+            fruits: true,
+            vegetables: true,
+            meat: true,
+            dairy: true,
+            grains: true,
+            seafood: true,
+            desserts: true,
+            beverages: true,
+            instruments: false,
+            tools: false
+        };
+        
+        // 页面加载完成后获取数据
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshData();
+            // 立即显示推荐（不等待API调用）
+            updateRecommendationsImmediately();
+            // 每30秒自动刷新冰箱状态
+            setInterval(refreshData, 30000);
+            // 每60秒自动刷新推荐
+            setInterval(updateRecommendations, 60000);
+            // 建立SSE连接
+            connectSSE();
+        });
+        
+        // 建立SSE连接
+        let eventSource = null;
+        
+        function connectSSE() {
+            eventSource = new EventSource('/api/events');
+            
+            eventSource.onopen = function(event) {
+                console.log('SSE连接已建立');
+            };
+            
+            eventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log('收到SSE事件:', data);
+                    
+                    if (data.type === 'button_pressed') {
+                        // 按钮被按下，立即显示通知
+                        handleButtonPressed(data.data);
+                    } else if (data.type === 'action_completed') {
+                        // 操作完成，显示结果
+                        handleActionCompleted(data.data);
+                    }
+                } catch (error) {
+                    console.error('解析SSE数据失败:', error);
+                }
+            };
+            
+            eventSource.onerror = function(event) {
+                console.error('SSE连接错误:', event);
+                // 尝试重新连接
+                setTimeout(connectSSE, 5000);
+            };
+        }
+        
+        // 处理按钮按下事件
+        function handleButtonPressed(data) {
+            if (data.button_type === 'place') {
+                showPhysicalButtonNotification('📸 正在拍照识别物品...', 'info');
+            } else if (data.button_type === 'take_out') {
+                showPhysicalButtonNotification('🔄 正在取出物品...', 'info');
+            }
+        }
+        
+        // 处理操作完成事件
+        function handleActionCompleted(data) {
+            if (data.success) {
+                showPhysicalButtonNotification(data.message, 'success');
+                refreshData();
+            } else {
+                showPhysicalButtonNotification(data.error || '操作失败', 'danger');
+            }
+        }
+        
+        // 检查物理按钮事件（保留作为备用）
+        let lastButtonTime = 0;
+        function checkPhysicalButton() {
+            fetch('/api/physical-button-status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.last_button_time > lastButtonTime) {
+                        lastButtonTime = data.last_button_time;
+                        // 使用实际结果处理函数
+                        handleRealPhysicalButtonEvent(data);
+                    }
+                })
+                .catch(error => {
+                    // 忽略错误，继续轮询
+                });
+        }
+        
+        // 处理物理按钮事件
+        function handlePhysicalButtonEvent(data) {
+            if (data.button_type === 'place') {
+                // 显示拍照提示
+                showPhysicalButtonNotification('📸 正在拍照识别物品...', 'info');
+                
+                // 模拟拍照过程
+                setTimeout(() => {
+                    // 刷新数据以显示新添加的物品
+                    refreshData();
+                    showPhysicalButtonNotification('✅ 物品已成功放入冰箱！', 'success');
+                }, 3000);
+            } else if (data.button_type === 'take_out') {
+                showPhysicalButtonNotification('🔄 正在取出物品...', 'info');
+                setTimeout(() => {
+                    refreshData();
+                    showPhysicalButtonNotification('✅ 物品已成功取出！', 'success');
+                }, 2000);
+            }
+        }
+        
+        // 处理实际的物理按钮事件（从后端获取结果）
+        function handleRealPhysicalButtonEvent(data) {
+            if (data.button_type === 'place') {
+                if (data.action_result && data.action_result.success) {
+                    const message = data.action_result.message || '物品已成功放入冰箱！';
+                    showPhysicalButtonNotification(message, 'success');
+                    refreshData();
+                } else {
+                    showPhysicalButtonNotification('❌ 放入物品失败', 'danger');
+                }
+            } else if (data.button_type === 'take_out') {
+                if (data.action_result && data.action_result.success) {
+                    const message = data.action_result.message || '物品已成功取出！';
+                    showPhysicalButtonNotification(message, 'success');
+                    refreshData();
+                } else {
+                    showPhysicalButtonNotification('❌ 取出物品失败', 'danger');
+                }
+            }
+        }
+        
+        // 显示物理按钮通知
+        function showPhysicalButtonNotification(message, type) {
+            // 创建通知元素
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type === 'success' ? 'success' : 'info'} alert-dismissible fade show`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 300px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+            notification.innerHTML = `
+                <strong>${type === 'success' ? '✅' : '📸'} 物理按钮</strong><br>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            // 添加到页面
+            document.body.appendChild(notification);
+            
+            // 3秒后自动移除
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 3000);
+        }
+        
+        // 刷新数据
+        function refreshData() {
+            fetch('/api/fridge-status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fridgeData = data;
+                        updateStats(data.stats);
+                        updateFridgeGrid(data.level_usage, data.temperature_levels);
+                        updateItemsList(data.items);
+                        // 不在这里更新推荐，而是单独调用
+                    } else {
+                        console.error('获取冰箱状态失败:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('请求失败:', error);
+                });
+        }
+        
+        // 更新统计卡片
+        function updateStats(stats) {
+            const statsCards = document.getElementById('statsCards');
+            statsCards.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-icon">📦</div>
+                    <div class="stat-number">${stats.total_items}</div>
+                    <div class="stat-label">总物品数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🟢</div>
+                    <div class="stat-number">${stats.fresh_items}</div>
+                    <div class="stat-label">新鲜物品</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔵</div>
+                    <div class="stat-number">${stats.long_term_items || 0}</div>
+                    <div class="stat-label">长期保存</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🟠</div>
+                    <div class="stat-number">${stats.expiring_soon}</div>
+                    <div class="stat-label">即将过期</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔴</div>
+                    <div class="stat-number">${stats.expired_items}</div>
+                    <div class="stat-label">已过期</div>
+                </div>
+            `;
+        }
+        
+        // 更新冰箱网格
+        function updateFridgeGrid(levelUsage, temperatureLevels) {
+            const fridgeGrid = document.getElementById('fridgeGrid');
+            let gridHTML = '';
+            
+            for (let level = 0; level < 5; level++) {
+                const temp = temperatureLevels[level];
+                const tempInfo = getTemperatureInfo(level);
+                const sections = levelUsage[level.toString()];
+                
+                let sectionsHTML = '';
+                for (let section = 0; section < 4; section++) {
+                    const isOccupied = sections[section.toString()];
+                    const sectionClass = isOccupied ? 'occupied' : 'empty';
+                    const sectionText = isOccupied ? '已占用' : '空闲';
+                    
+                    sectionsHTML += `
+                        <div class="section ${sectionClass}">
+                            ${sectionText}
+                        </div>
+                    `;
+                }
+                
+                gridHTML += `
+                    <div class="level-card">
+                        <div class="level-header">
+                            <div class="level-emoji">${tempInfo.emoji}</div>
+                            <div>
+                                <div class="level-title">第${level}层</div>
+                                <div class="level-temp">${tempInfo.name} ${temp}°C</div>
+                            </div>
+                        </div>
+                        <div class="section-grid">
+                            ${sectionsHTML}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            fridgeGrid.innerHTML = gridHTML;
+        }
+        
+        // 更新物品列表
+        function updateItemsList(items) {
+            const itemsList = document.getElementById('itemsList');
+            
+            if (items.length === 0) {
+                itemsList.innerHTML = `
+                    <div class="text-center text-muted">
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <p>冰箱是空的，添加一些食物吧！</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let itemsHTML = '';
+            items.forEach(item => {
+                const progressClass = item.expiry_progress.status;
+                const progressColor = item.expiry_progress.color;
+                
+                itemsHTML += `
+                    <div class="item-card">
+                        <div class="item-header">
+                            <div class="item-emoji">${item.emoji}</div>
+                            <div class="item-info">
+                                <h5 data-id="${item.id}">${item.name}</h5>
+                                <div class="item-location">
+                                    ${item.temp_info.emoji} 第${item.level}层第${item.section}扇区 · ${item.category}
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary takeout-btn" 
+                                    onclick="takeOutItem('${item.id}')" 
+                                    style="display: none;">
+                                <i class="fas fa-hand-paper"></i> 取出
+                            </button>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress">
+                                <div class="progress-bar ${progressClass}" 
+                                     style="width: ${item.expiry_progress.percentage}%; background-color: ${progressColor};">
+                                </div>
+                            </div>
+                            <div class="progress-text">
+                                ${item.expiry_progress.text}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            itemsList.innerHTML = itemsHTML;
+        }
+        
+        // 立即显示推荐（不等待API调用）
+        function updateRecommendationsImmediately() {
+            const recommendationsList = document.getElementById('recommendationsList');
+            
+            // 显示默认推荐
+            const currentHour = new Date().getHours();
+            let timeAdvice = '';
+            
+            if (currentHour < 12) {
+                timeAdvice = `
+                    <div class="time-advice-card">
+                        <div class="time-advice-title">
+                            <i class="fas fa-sun"></i> 早上建议
+                        </div>
+                        <div class="time-advice-content">
+                            <p>🌅 建议食用新鲜水果补充维生素</p>
+                            <p>🥛 搭配蛋白质，营养更均衡</p>
+                            <p>🍎 苹果富含纤维，是早餐的好选择</p>
+                        </div>
+                    </div>
+                `;
+            } else if (currentHour < 18) {
+                timeAdvice = `
+                    <div class="time-advice-card">
+                        <div class="time-advice-title">
+                            <i class="fas fa-cloud-sun"></i> 下午建议
+                        </div>
+                        <div class="time-advice-content">
+                            <p>☕ 下午茶时间，可以享用冰箱里的新鲜食物</p>
+                            <p>⚠️ 注意检查食物保质期，避免浪费</p>
+                            <p>🥪 可以制作简单的三明治或沙拉</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                timeAdvice = `
+                    <div class="time-advice-card">
+                        <div class="time-advice-title">
+                            <i class="fas fa-moon"></i> 晚上建议
+                        </div>
+                        <div class="time-advice-content">
+                            <p>🌙 建议整理冰箱，为明天做准备</p>
+                            <p>🧹 清理即将过期的食物</p>
+                            <p>📝 可以列出明天的购物清单</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            const categoryInfo = `
+                <div class="category-info-card">
+                    <div class="category-info-title">
+                        <i class="fas fa-info-circle"></i> 推荐分类说明
+                    </div>
+                    <div class="category-info-content">
+                        <div class="category-item">
+                            <span class="category-icon">⚠️</span>
+                            <span class="category-text">即将过期物品：提醒用户尽快处理</span>
+                        </div>
+                        <div class="category-item">
+                            <span class="category-icon">✅</span>
+                            <span class="category-text">新鲜物品：显示可放心食用的物品</span>
+                        </div>
+                        <div class="category-item">
+                            <span class="category-icon">🔄</span>
+                            <span class="category-text">长期保存物品：显示无需担心过期的物品</span>
+                        </div>
+                        <div class="category-item">
+                            <span class="category-icon">💡</span>
+                            <span class="category-text">一般建议：当没有特殊情况时的友好提示</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            recommendationsList.innerHTML = `
+                <div class="text-center text-muted">
+                    <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
+                    <p>正在加载智能推荐...</p>
+                    <small>🕐 加载时间: ${new Date().toLocaleTimeString()}</small>
+                </div>
+                ${timeAdvice}
+                ${categoryInfo}
+            `;
+            
+            // 然后异步获取真实推荐
+            updateRecommendations();
+        }
+        
+        // 更新推荐
+        function updateRecommendations() {
+            fetch('/api/recommendations')
+                .then(response => response.json())
+                .then(data => {
+                    const recommendationsList = document.getElementById('recommendationsList');
+                    
+                    if (data.success && data.recommendations.length > 0) {
+                        let recommendationsHTML = '';
+                        data.recommendations.forEach(rec => {
+                            // 生成物品emoji列表
+                            let itemsEmoji = '';
+                            if (rec.items && rec.items.length > 0) {
+                                itemsEmoji = rec.items.map(item => {
+                                    const emoji = getFoodEmoji(item.name, item.category);
+                                    return `<span class="item-emoji" title="${item.name}">${emoji}</span>`;
+                                }).join(' ');
+                            }
+                            
+                            recommendationsHTML += `
+                                <div class="recommendation-card">
+                                    <div class="recommendation-title">
+                                        <i class="fas fa-lightbulb"></i> ${rec.title}
+                                    </div>
+                                    <div class="recommendation-message">
+                                        ${rec.message}
+                                    </div>
+                                    ${itemsEmoji ? `<div class="recommendation-items">${itemsEmoji}</div>` : ''}
+                                    <div class="recommendation-action">
+                                        💡 ${rec.action}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        
+                        // 获取大模型生成的时间建议
+                        fetch('/api/time-advice')
+                            .then(response => response.json())
+                            .then(timeData => {
+                                if (timeData.success) {
+                                    const advice = timeData.time_advice;
+                                    const urgencyClass = `urgency-${advice.urgency_level || 'low'}`;
+                                    
+                                    timeAdvice = `
+                                        <div class="time-advice-card ${urgencyClass}">
+                                            <div class="time-advice-title">
+                                                <i class="fas fa-clock"></i> ${timeData.time_context}建议
+                                            </div>
+                                            <div class="time-advice-content">
+                                                <p class="advice-greeting">${advice.greeting}</p>
+                                                <p class="advice-main">${advice.main_advice}</p>
+                                                <div class="advice-tips">
+                                                    <h6>营养提示：</h6>
+                                                    ${advice.nutrition_tips.map(tip => `<p>${tip}</p>`).join('')}
+                                                </div>
+                                                <div class="advice-cooking">
+                                                    <h6>烹饪建议：</h6>
+                                                    ${advice.cooking_suggestions.map(suggestion => `<p>${suggestion}</p>`).join('')}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                } else {
+                                    // 如果获取失败，使用默认建议
+                                    const currentHour = new Date().getHours();
+                                    if (currentHour < 12) {
+                                        timeAdvice = `
+                                            <div class="time-advice-card">
+                                                <div class="time-advice-title">
+                                                    <i class="fas fa-sun"></i> 早上建议
+                                                </div>
+                                                <div class="time-advice-content">
+                                                    <p>🌅 建议食用新鲜水果补充维生素</p>
+                                                    <p>🥛 搭配蛋白质，营养更均衡</p>
+                                                    <p>🍎 苹果富含纤维，是早餐的好选择</p>
+                                                </div>
+                                            </div>
+                                        `;
+                                    } else if (currentHour < 18) {
+                                        timeAdvice = `
+                                            <div class="time-advice-card">
+                                                <div class="time-advice-title">
+                                                    <i class="fas fa-cloud-sun"></i> 下午建议
+                                                </div>
+                                                <div class="time-advice-content">
+                                                    <p>☕ 下午茶时间，可以享用冰箱里的新鲜食物</p>
+                                                    <p>⚠️ 注意检查食物保质期，避免浪费</p>
+                                                    <p>🥪 可以制作简单的三明治或沙拉</p>
+                                                </div>
+                                            </div>
+                                        `;
+                                    } else {
+                                        timeAdvice = `
+                                            <div class="time-advice-card">
+                                                <div class="time-advice-title">
+                                                    <i class="fas fa-moon"></i> 晚上建议
+                                                </div>
+                                                <div class="time-advice-content">
+                                                    <p>🌙 建议整理冰箱，为明天做准备</p>
+                                                    <p>🧹 清理即将过期的食物</p>
+                                                    <p>📝 可以列出明天的购物清单</p>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }
+                                }
+                            })
+                            .catch(error => {
+                                console.error('获取时间建议失败:', error);
+                                // 使用默认建议
+                                const currentHour = new Date().getHours();
+                                if (currentHour < 12) {
+                                    timeAdvice = `
+                                        <div class="time-advice-card">
+                                            <div class="time-advice-title">
+                                                <i class="fas fa-sun"></i> 早上建议
+                                            </div>
+                                            <div class="time-advice-content">
+                                                <p>🌅 建议食用新鲜水果补充维生素</p>
+                                                <p>🥛 搭配蛋白质，营养更均衡</p>
+                                                <p>🍎 苹果富含纤维，是早餐的好选择</p>
+                                            </div>
+                                        </div>
+                                    `;
+                                } else if (currentHour < 18) {
+                                    timeAdvice = `
+                                        <div class="time-advice-card">
+                                            <div class="time-advice-title">
+                                                <i class="fas fa-cloud-sun"></i> 下午建议
+                                            </div>
+                                            <div class="time-advice-content">
+                                                <p>☕ 下午茶时间，可以享用冰箱里的新鲜食物</p>
+                                                <p>⚠️ 注意检查食物保质期，避免浪费</p>
+                                                <p>🥪 可以制作简单的三明治或沙拉</p>
+                                            </div>
+                                        </div>
+                                    `;
+                                } else {
+                                    timeAdvice = `
+                                        <div class="time-advice-card">
+                                            <div class="time-advice-title">
+                                                <i class="fas fa-moon"></i> 晚上建议
+                                            </div>
+                                            <div class="time-advice-content">
+                                                <p>🌙 建议整理冰箱，为明天做准备</p>
+                                                <p>🧹 清理即将过期的食物</p>
+                                                <p>📝 可以列出明天的购物清单</p>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                            });
+                        
+                        // 添加推荐分类说明
+                        const categoryInfo = `
+                            <div class="category-info-card">
+                                <div class="category-info-title">
+                                    <i class="fas fa-info-circle"></i> 推荐分类说明
+                                </div>
+                                <div class="category-info-content">
+                                    <div class="category-item">
+                                        <span class="category-icon">⚠️</span>
+                                        <span class="category-text">即将过期物品：提醒用户尽快处理</span>
+                                    </div>
+                                    <div class="category-item">
+                                        <span class="category-icon">✅</span>
+                                        <span class="category-text">新鲜物品：显示可放心食用的物品</span>
+                                    </div>
+                                    <div class="category-item">
+                                        <span class="category-icon">🔄</span>
+                                        <span class="category-text">长期保存物品：显示无需担心过期的物品</span>
+                                    </div>
+                                    <div class="category-item">
+                                        <span class="category-icon">💡</span>
+                                        <span class="category-text">一般建议：当没有特殊情况时的友好提示</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // 添加更新时间
+                        const updateTime = data.last_update ? new Date(data.last_update).toLocaleTimeString() : '刚刚';
+                        recommendationsHTML += timeAdvice + categoryInfo + `
+                            <div class="text-center text-muted mt-3">
+                                <small>🕐 推荐更新时间: ${updateTime}</small>
+                            </div>
+                        `;
+                        
+                        recommendationsList.innerHTML = recommendationsHTML;
+                    } else {
+                        recommendationsList.innerHTML = `
+                            <div class="text-center text-muted">
+                                <i class="fas fa-check-circle fa-3x mb-3"></i>
+                                <p>一切正常，没有特殊推荐</p>
+                                <small>🕐 推荐更新时间: ${new Date().toLocaleTimeString()}</small>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('获取推荐失败:', error);
+                    // 显示默认推荐而不是错误信息
+                    const currentHour = new Date().getHours();
+                    let timeAdvice = '';
+                    
+                    if (currentHour < 12) {
+                        timeAdvice = `
+                            <div class="time-advice-card">
+                                <div class="time-advice-title">
+                                    <i class="fas fa-sun"></i> 早上建议
+                                </div>
+                                <div class="time-advice-content">
+                                    <p>🌅 建议食用新鲜水果补充维生素</p>
+                                    <p>🥛 搭配蛋白质，营养更均衡</p>
+                                    <p>🍎 苹果富含纤维，是早餐的好选择</p>
+                                </div>
+                            </div>
+                        `;
+                    } else if (currentHour < 18) {
+                        timeAdvice = `
+                            <div class="time-advice-card">
+                                <div class="time-advice-title">
+                                    <i class="fas fa-cloud-sun"></i> 下午建议
+                                </div>
+                                <div class="time-advice-content">
+                                    <p>☕ 下午茶时间，可以享用冰箱里的新鲜食物</p>
+                                    <p>⚠️ 注意检查食物保质期，避免浪费</p>
+                                    <p>🥪 可以制作简单的三明治或沙拉</p>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        timeAdvice = `
+                            <div class="time-advice-card">
+                                <div class="time-advice-title">
+                                    <i class="fas fa-moon"></i> 晚上建议
+                                </div>
+                                <div class="time-advice-content">
+                                    <p>🌙 建议整理冰箱，为明天做准备</p>
+                                    <p>🧹 清理即将过期的食物</p>
+                                    <p>📝 可以列出明天的购物清单</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    const categoryInfo = `
+                        <div class="category-info-card">
+                            <div class="category-info-title">
+                                <i class="fas fa-info-circle"></i> 推荐分类说明
+                            </div>
+                            <div class="category-info-content">
+                                <div class="category-item">
+                                    <span class="category-icon">⚠️</span>
+                                    <span class="category-text">即将过期物品：提醒用户尽快处理</span>
+                                </div>
+                                <div class="category-item">
+                                    <span class="category-icon">✅</span>
+                                    <span class="category-text">新鲜物品：显示可放心食用的物品</span>
+                                </div>
+                                <div class="category-item">
+                                    <span class="category-icon">🔄</span>
+                                    <span class="category-text">长期保存物品：显示无需担心过期的物品</span>
+                                </div>
+                                <div class="category-item">
+                                    <span class="category-icon">💡</span>
+                                    <span class="category-text">一般建议：当没有特殊情况时的友好提示</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('recommendationsList').innerHTML = `
+                        <div class="text-center text-muted">
+                            <i class="fas fa-check-circle fa-3x mb-3"></i>
+                            <p>一切正常，没有特殊推荐</p>
+                            <small>🕐 推荐更新时间: ${new Date().toLocaleTimeString()}</small>
+                        </div>
+                        ${timeAdvice}
+                        ${categoryInfo}
+                    `;
+                });
+        }
+        
+        // 获取温度信息
+        function getTemperatureInfo(level) {
+            const tempInfo = {
+                0: {name: "冷冻", emoji: "🧊"},
+                1: {name: "冷冻", emoji: "🧊"},
+                2: {name: "冷藏", emoji: "❄️"},
+                3: {name: "保鲜", emoji: "🌡️"},
+                4: {name: "常温", emoji: "🌡️"}
+            };
+            return tempInfo[level] || {name: "未知", emoji: "❓"};
+        }
+        
+        // 获取食物emoji
+        function getFoodEmoji(foodName, category) {
+            const foodEmojis = {
+                "苹果": "🍎", "香蕉": "🍌", "橙子": "🍊", "葡萄": "🍇", "草莓": "🍓",
+                "牛奶": "🥛", "鸡蛋": "🥚", "面包": "🍞", "米饭": "🍚", "面条": "🍜",
+                "牛肉": "🥩", "猪肉": "🥩", "鸡肉": "🍗", "鱼": "🐟", "虾": "🦐",
+                "蔬菜": "🥬", "胡萝卜": "🥕", "土豆": "🥔", "洋葱": "🧅", "大蒜": "🧄",
+                "三明治": "🥪", "汉堡": "🍔", "披萨": "🍕", "寿司": "🍣", "沙拉": "🥗",
+                "冰淇淋": "🍦", "蛋糕": "🍰", "巧克力": "🍫", "糖果": "🍬", "饼干": "🍪",
+                "咖啡": "☕", "茶": "🍵", "果汁": "🧃", "可乐": "🥤", "啤酒": "🍺",
+                "小提琴": "🎻", "口琴": "🎵", "吉他": "🎸", "钢琴": "🎹", "鼓": "🥁"
+            };
+            
+            // 先按名称匹配
+            if (foodName in foodEmojis) {
+                return foodEmojis[foodName];
+            }
+            
+            // 按类别匹配
+            const categoryEmojis = {
+                "水果": "🍎", "蔬菜": "🥬", "肉类": "🥩", "乳制品": "🥛", "谷物": "🍞",
+                "海鲜": "🐟", "甜点": "🍰", "饮料": "🥤", "乐器": "🎵", "工具": "🔧",
+                "熟食": "🥪", "水果": "🍎", "肉类": "🥩", "乐器": "🎵"
+            };
+            
+            if (category in categoryEmojis) {
+                return categoryEmojis[category];
+            }
+            
+            // 默认emoji
+            return "📦";
+        }
+        
+        // 接近传感器功能
+        function triggerProximitySensor() {
+            const modal = document.getElementById('proximityModal');
+            const content = document.getElementById('proximityContent');
+            
+            modal.style.display = 'block';
+            content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> 分析中...</div>';
+            
+            fetch('/api/proximity-sensor', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const rec = data.recommendation;
+                    const urgencyClass = `urgency-${rec.urgency_level || 'low'}`;
+                    
+                    content.innerHTML = `
+                        <div class="proximity-recommendation ${urgencyClass}">
+                            <div class="proximity-greeting">${rec.greeting || '你好！'}</div>
+                            <div class="proximity-main">${rec.main_recommendation || '没有特殊推荐'}</div>
+                            <div class="proximity-tip">💡 ${rec.quick_tip || '保持健康饮食'}</div>
+                        </div>
+                        <div class="text-center text-muted">
+                            <small>${data.time_context} · ${data.workday_context}</small>
+                        </div>
+                    `;
+                } else {
+                    content.innerHTML = `
+                        <div class="text-center text-danger">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                            <p>获取推荐失败: ${data.error}</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                content.innerHTML = `
+                    <div class="text-center text-danger">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                        <p>请求失败: ${error}</p>
+                    </div>
+                `;
+            });
+        }
+        
+        // 关闭接近传感器弹窗
+        function closeProximityModal() {
+            document.getElementById('proximityModal').style.display = 'none';
+        }
+        
+        // 放置物品功能
+        function placeItem() {
+            document.getElementById('uploadModal').style.display = 'block';
+        }
+        
+        // 关闭上传弹窗
+        function closeUploadModal() {
+            document.getElementById('uploadModal').style.display = 'none';
+            // 清空预览
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('confirmBtn').disabled = true;
+        }
+        
+        // 预览图片
+        function previewImage() {
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            const fileName = document.getElementById('fileName');
+            const confirmBtn = document.getElementById('confirmBtn');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    fileName.textContent = file.name;
+                    preview.style.display = 'block';
+                    confirmBtn.disabled = false;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+                confirmBtn.disabled = true;
+            }
+        }
+        
+        // 确认放置物品
+        function confirmPlaceItem() {
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('请先选择图片');
+                return;
+            }
+            
+            // 创建FormData对象来上传文件
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            fetch('/api/place-item', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('物品添加成功！');
+                    closeUploadModal();
+                    refreshData();
+                    // 清空文件输入
+                    fileInput.value = '';
+                } else {
+                    alert('添加失败: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('请求失败: ' + error);
+            });
+        }
+        
+        // 显示取出模式
+        function showTakeOutMode() {
+            const container = document.querySelector('.fridge-container');
+            container.classList.add('takeout-mode');
+            
+            // 获取推荐并高亮显示
+            fetch('/api/recommendations')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.recommendations.length > 0) {
+                        // 找到推荐的食物并高亮
+                        const recommendedItems = [];
+                        data.recommendations.forEach(rec => {
+                            if (rec.items && rec.items.length > 0) {
+                                rec.items.forEach(item => {
+                                    recommendedItems.push(item.item_id);
+                                });
+                            }
+                        });
+                        
+                        // 高亮推荐物品
+                        const itemCards = document.querySelectorAll('.item-card');
+                        itemCards.forEach(card => {
+                            const itemId = card.querySelector('.item-info h5').getAttribute('data-id');
+                            if (recommendedItems.includes(itemId)) {
+                                card.classList.add('recommended');
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('获取推荐失败:', error);
+                });
+            
+            // 添加退出按钮
+            const exitBtn = document.createElement('button');
+            exitBtn.className = 'control-btn exit-btn';
+            exitBtn.innerHTML = '<i class="fas fa-times"></i><span>退出</span>';
+            exitBtn.onclick = exitTakeOutMode;
+            exitBtn.style.background = 'linear-gradient(45deg, #6c757d, #495057)';
+            document.querySelector('.control-buttons').appendChild(exitBtn);
+        }
+        
+        // 退出取出模式
+        function exitTakeOutMode() {
+            const container = document.querySelector('.fridge-container');
+            container.classList.remove('takeout-mode');
+            
+            // 移除推荐高亮
+            const itemCards = document.querySelectorAll('.item-card');
+            itemCards.forEach(card => {
+                card.classList.remove('recommended');
+            });
+            
+            // 移除退出按钮
+            const exitBtn = document.querySelector('.exit-btn');
+            if (exitBtn) {
+                exitBtn.remove();
+            }
+        }
+        
+        // 显示偏好设置
+        function showPreferences() {
+            // 加载当前偏好设置
+            loadPreferences();
+            document.getElementById('preferencesModal').style.display = 'block';
+        }
+        
+        // 关闭偏好设置弹窗
+        function closePreferencesModal() {
+            document.getElementById('preferencesModal').style.display = 'none';
+        }
+        
+        // 加载偏好设置
+        function loadPreferences() {
+            fetch('/api/user-preferences')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const prefs = data.preferences;
+                        document.getElementById('pref-fruits').checked = prefs.fruits;
+                        document.getElementById('pref-vegetables').checked = prefs.vegetables;
+                        document.getElementById('pref-meat').checked = prefs.meat;
+                        document.getElementById('pref-dairy').checked = prefs.dairy;
+                        document.getElementById('pref-grains').checked = prefs.grains;
+                        document.getElementById('pref-seafood').checked = prefs.seafood;
+                        document.getElementById('pref-desserts').checked = prefs.desserts;
+                        document.getElementById('pref-beverages').checked = prefs.beverages;
+                        document.getElementById('pref-instruments').checked = prefs.instruments;
+                        document.getElementById('pref-tools').checked = prefs.tools;
+                    }
+                })
+                .catch(error => {
+                    console.error('加载偏好设置失败:', error);
+                });
+        }
+        
+        // 保存偏好设置
+        function savePreferences() {
+            const preferences = {
+                fruits: document.getElementById('pref-fruits').checked,
+                vegetables: document.getElementById('pref-vegetables').checked,
+                meat: document.getElementById('pref-meat').checked,
+                dairy: document.getElementById('pref-dairy').checked,
+                grains: document.getElementById('pref-grains').checked,
+                seafood: document.getElementById('pref-seafood').checked,
+                desserts: document.getElementById('pref-desserts').checked,
+                beverages: document.getElementById('pref-beverages').checked,
+                instruments: document.getElementById('pref-instruments').checked,
+                tools: document.getElementById('pref-tools').checked
+            };
+            
+            fetch('/api/user-preferences', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(preferences)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('偏好设置已保存！');
+                    closePreferencesModal();
+                    // 更新全局偏好设置
+                    userPreferences = preferences;
+                } else {
+                    alert('保存失败: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('保存失败: ' + error);
+            });
+        }
+        
+        // 取出物品
+        function takeOutItem(itemId) {
+            fetch('/api/take-out', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({item_id: itemId})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('物品取出成功！');
+                    refreshData();
+                    exitTakeOutMode();
+                } else {
+                    alert('取出失败: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('请求失败: ' + error);
+            });
+        }
+    </script>
+</body>
+</html> 

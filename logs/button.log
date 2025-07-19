@@ -1,0 +1,12 @@
+2025-07-19 17:18:26,854 - INFO - Web服务器连接正常
+[ WARN:0@0.023] global cap_v4l.cpp:914 open VIDEOIO(V4L2:/dev/video0): can't open camera by index
+[ERROR:0@0.025] global obsensor_uvc_stream_channel.cpp:163 getStreamChannelGroup Camera index out of range
+2025-07-19 17:18:26,859 - ERROR - 摄像头初始化失败: 无法读取摄像头
+2025-07-19 17:18:26,859 - INFO - GPIO初始化完成
+2025-07-19 17:18:26,859 - INFO - 按键16 (GPIO16): 放入物品（拍照识别）
+2025-07-19 17:18:26,859 - INFO - 按键17 (GPIO17): 取出物品
+2025-07-19 17:18:26,860 - INFO - Web服务器地址: http://localhost:8080
+2025-07-19 17:18:26,860 - INFO - 程序开始运行，等待按键按下...
+2025-07-19 17:18:26,860 - INFO - 按 Ctrl+C 退出程序
+2025-07-19 17:18:47,910 - INFO - 按键16被按下 - 触发放入物品功能
+2025-07-19 17:18:47,910 - ERROR - 摄像头不可用，无法拍照
