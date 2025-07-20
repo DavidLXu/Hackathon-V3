@@ -12,35 +12,59 @@
       "freezable": false,
       "reasoning": "水属于饮料类，最佳存储温度为4°C（第1层），保质期为7天。"
     },
-    "item_1752983398": {
-      "name": "水",
-      "category": "饮料",
+    "item_1752983611": {
+      "name": "苹果",
+      "category": "水果",
       "level": 1,
-      "section": 1,
+      "section": 4,
       "optimal_temperature": 4,
-      "expiry_date": "2125-06-26T04:49:58.443386",
-      "added_date": "2025-07-20T04:49:58.443415",
-      "image_path": "uploads/captured_internal_20250720_044956.jpg",
+      "expiry_date": "2025-07-27T04:53:31.307832",
+      "added_date": "2025-07-20T04:53:31.307853",
+      "image_path": "uploads/captured_internal_20250720_045329.jpg",
       "freezable": false,
-      "reasoning": "水属于饮料类，最佳存储温度为4°C（第1层），非食物物品长期保存。当前第1层有空闲扇区，因此选择第1层的第0个扇区。"
+      "reasoning": "苹果属于水果类，最佳存储温度为4°C（第1层），保质期为7天。"
     },
-    "item_1752983413": {
-      "name": "小提琴",
-      "category": "非食物",
+    "item_1752983727": {
+      "name": "花生",
+      "category": "谷物",
       "level": 1,
-      "section": 2,
+      "section": 5,
       "optimal_temperature": 4,
-      "expiry_date": "2125-06-26T04:50:13.323388",
-      "added_date": "2025-07-20T04:50:13.323402",
-      "image_path": "uploads/captured_internal_20250720_045011.jpg",
+      "expiry_date": "2025-07-23T04:55:27.824344",
+      "added_date": "2025-07-20T04:55:27.824373",
+      "image_path": "uploads/captured_internal_20250720_045525.jpg",
       "freezable": false,
-      "reasoning": "图片中的物品为小提琴，属于非食物物品，根据规则应选择4°C的第1层进行存储。"
+      "reasoning": "花生属于谷物类食物，最佳存储温度为4°C（第1层），保质期为3天。当前第1层的第2扇区为空闲，因此选择该扇区进行存储。"
+    },
+    "item_1752983745": {
+      "name": "土豆",
+      "category": "蔬菜",
+      "level": 0,
+      "section": 0,
+      "optimal_temperature": 4,
+      "expiry_date": "2025-07-30T04:55:45.484883",
+      "added_date": "2025-07-20T04:55:45.484898",
+      "image_path": "uploads/captured_internal_20250720_045543.jpg",
+      "freezable": false,
+      "reasoning": "土豆属于蔬菜类，最佳存储温度为4°C（第1层），保质期为10天。"
+    },
+    "item_1752983799": {
+      "name": "肉",
+      "category": "肉类",
+      "level": 0,
+      "section": 1,
+      "optimal_temperature": -5,
+      "expiry_date": "2025-07-27T04:56:39.903828",
+      "added_date": "2025-07-20T04:56:39.903856",
+      "image_path": "uploads/captured_internal_20250720_045637.jpg",
+      "freezable": false,
+      "reasoning": "图片中的物品是肉，最佳存储温度为-5°C（第0层），保质期为7天。"
     }
   },
   "level_usage": {
     "0": {
-      "0": false,
-      "1": false,
+      "0": true,
+      "1": true,
       "2": false,
       "3": false,
       "4": false,
@@ -48,12 +72,12 @@
     },
     "1": {
       "0": true,
-      "1": true,
-      "2": true,
+      "1": false,
+      "2": false,
       "3": false,
-      "4": false,
-      "5": false
+      "4": true,
+      "5": true
     }
   },
-  "last_update": "2025-07-20T04:50:24.587512"
+  "last_update": "2025-07-20T04:56:39.903866"
 }
