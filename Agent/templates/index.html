@@ -78,7 +78,7 @@
         
         .fridge-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             padding: 30px;
         }
@@ -115,7 +115,7 @@
         
         .section-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 10px;
         }
         
@@ -694,7 +694,7 @@
         
         @media (max-width: 768px) {
             .fridge-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(1, 1fr);
             }
             
             .stats-cards {
@@ -1183,13 +1183,13 @@
             const fridgeGrid = document.getElementById('fridgeGrid');
             let gridHTML = '';
             
-            for (let level = 0; level < 5; level++) {
+            for (let level = 0; level < 2; level++) {
                 const temp = temperatureLevels[level];
                 const tempInfo = getTemperatureInfo(level);
                 const sections = levelUsage[level.toString()];
                 
                 let sectionsHTML = '';
-                for (let section = 0; section < 4; section++) {
+                for (let section = 0; section < 6; section++) {
                     const isOccupied = sections[section.toString()];
                     const sectionClass = isOccupied ? 'occupied' : 'empty';
                     const sectionText = isOccupied ? '已占用' : '空闲';
@@ -1649,10 +1649,7 @@
         function getTemperatureInfo(level) {
             const tempInfo = {
                 0: {name: "冷冻", emoji: "🧊"},
-                1: {name: "冷冻", emoji: "🧊"},
-                2: {name: "冷藏", emoji: "❄️"},
-                3: {name: "保鲜", emoji: "🌡️"},
-                4: {name: "常温", emoji: "🌡️"}
+                1: {name: "冷藏", emoji: "❄️"}
             };
             return tempInfo[level] || {name: "未知", emoji: "❓"};
         }

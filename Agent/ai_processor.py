@@ -41,14 +41,11 @@ class AIProcessor:
         self.fridge_data_file = "Agent/fridge_inventory_qwen.json"
         
         # 冰箱配置
-        self.total_levels = 5  # 5层
-        self.sections_per_level = 4  # 每层4个扇区
+        self.total_levels = 2  # 2层
+        self.sections_per_level = 6  # 每层6个扇区
         self.temperature_levels = {
-            0: -18,  # 最底层：-18°C (冷冻)
-            1: -5,   # 第二层：-5°C (冷冻)
-            2: 2,    # 第三层：2°C (冷藏)
-            3: 6,    # 第四层：6°C (冷藏)
-            4: 10    # 最顶层：10°C (冷藏)
+            0: -5,   # 底层：-5°C (冷冻)
+            1: 4     # 顶层：4°C (冷藏)
         }
         
         # 加载冰箱数据
@@ -233,15 +230,15 @@ class AIProcessor:
         return f"""你是一个智慧冰箱的AI助手。用户要添加一个新物品到冰箱。
 
 冰箱配置：
-- 5层，每层4个扇区
-- 温度分布：第0层-18°C(冷冻)，第1层-5°C(冷冻)，第2层2°C(冷藏)，第3层6°C(冷藏)，第4层10°C(冷藏)
+- 2层，每层6个扇区
+- 温度分布：第0层-5°C(冷冻)，第1层4°C(冷藏)
 
 温度选择规则：
-- 水果、蔬菜、乳制品、谷物、烘焙、饮料：选择2-6°C（第2-3层）
-- 肉类、海鲜：选择-5°C（第1层）
-- 冰淇淋、冷冻食品：选择-18°C（第0层）
-- 其他：选择2-6°C（第2-3层）
-- 非食物物品（乐器、工具等）：选择2-6°C（第2-3层）
+- 水果、蔬菜、乳制品、谷物、烘焙、饮料：选择4°C（第1层）
+- 肉类、海鲜：选择-5°C（第0层）
+- 冰淇淋、冷冻食品：选择-5°C（第0层）
+- 其他：选择4°C（第1层）
+- 非食物物品（乐器、工具等）：选择4°C（第1层）
 
 保质期规则：
 - 水果：3-7天
@@ -516,7 +513,7 @@ class AIProcessor:
             if self.fridge_data["level_usage"][level_str][section_str]:
                 # 如果推荐的扇区被占用，寻找其他可用扇区
                 available_section = None
-                for sec in range(4):  # 每层4个扇区
+                for sec in range(6):  # 每层6个扇区
                     if not self.fridge_data["level_usage"][level_str][str(sec)]:
                         available_section = sec
                         break
@@ -526,9 +523,9 @@ class AIProcessor:
                     section_str = str(section)
                 else:
                     # 如果该层没有可用扇区，寻找其他层
-                    for lvl in range(5):  # 5层
+                    for lvl in range(2):  # 2层
                         lvl_str = str(lvl)
-                        for sec in range(4):
+                        for sec in range(6):
                             if not self.fridge_data["level_usage"][lvl_str][str(sec)]:
                                 level = lvl
                                 section = sec

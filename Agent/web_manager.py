@@ -156,8 +156,8 @@ class WebManager:
                 
                 # 处理库存数据
                 items = []
-                level_usage = {str(i): {str(j): False for j in range(4)} for i in range(5)}
-                temperature_levels = {str(i): -18 + i * 7 for i in range(5)}  # 模拟温度数据
+                level_usage = {str(i): {str(j): False for j in range(6)} for i in range(2)}
+                temperature_levels = {str(0): -5, str(1): 4}  # 实际温度数据
                 
                 # 统计数据
                 stats = {
@@ -527,11 +527,8 @@ class WebManager:
     def get_temperature_info(self, level: int) -> Dict:
         """获取温度信息"""
         temperature_levels = {
-            0: {"temp": -18, "name": "冷冻", "emoji": "🧊"},
-            1: {"temp": -5, "name": "冷冻", "emoji": "🧊"},
-            2: {"temp": 2, "name": "冷藏", "emoji": "❄️"},
-            3: {"temp": 6, "name": "保鲜", "emoji": "🌡️"},
-            4: {"temp": 10, "name": "常温", "emoji": "🌡️"}
+            0: {"temp": -5, "name": "冷冻", "emoji": "🧊"},
+            1: {"temp": 4, "name": "冷藏", "emoji": "❄️"}
         }
         return temperature_levels.get(level, {"temp": 0, "name": "未知", "emoji": "❓"})
     
