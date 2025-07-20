@@ -38,7 +38,7 @@ class AIProcessor:
     """AI处理器"""
     
     def __init__(self):
-        self.fridge_data_file = "fridge_inventory_qwen.json"
+        self.fridge_data_file = "Agent/fridge_inventory_qwen.json"
         
         # 冰箱配置
         self.total_levels = 5  # 5层
@@ -88,8 +88,8 @@ class AIProcessor:
             
             if button_type == "place_item":
                 logger.info("处理放入物品按钮事件")
-                # 这里可以触发拍照或其他操作
-                # 实际拍照由硬件管理器处理
+                # 直接处理物品放置
+                self.process_item_placement()
             elif button_type == "take_item":
                 logger.info("处理取出物品按钮事件")
                 self.process_item_removal()
@@ -139,6 +139,48 @@ class AIProcessor:
             logger.error(f"处理物品识别失败: {e}")
             return {"success": False, "error": str(e)}
     
+    def process_item_placement(self) -> Dict:
+        """处理物品放置"""
+        try:
+            logger.info("开始处理物品放置")
+            
+            # 直接调用硬件管理器拍照
+            from Sensor.hardware_manager import hardware_manager, CameraType
+            
+            # 拍照
+            image_path = hardware_manager.capture_image(CameraType.INTERNAL)
+            
+            if image_path:
+                logger.info(f"拍照成功: {image_path}")
+                
+                # 等待一下确保图片保存完成
+                time.sleep(1)
+                
+                # 处理物品识别
+                recognition_result = self.process_item_recognition(image_path)
+                
+                if recognition_result["success"]:
+                    return {
+                        "success": True,
+                        "message": "物品识别和添加成功",
+                        "item": recognition_result.get("item_id")
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "error": recognition_result.get("error", "物品识别失败")
+                    }
+            else:
+                logger.error("拍照失败")
+                return {
+                    "success": False,
+                    "error": "拍照失败"
+                }
+            
+        except Exception as e:
+            logger.error(f"处理物品放置失败: {e}")
+            return {"success": False, "error": str(e)}
+    
     def process_item_removal(self) -> Dict:
         """处理物品取出"""
         try:
@@ -179,41 +221,125 @@ class AIProcessor:
     
     def _get_recognition_prompt(self) -> str:
         """获取识别提示词"""
-        return """
-        请分析这张图片中的食物，并提供以下信息：
-        1. 食物名称（中文）
-        2. 食物类别（如：水果、蔬菜、肉类、乳制品、饮料、零食等）
-        3. 建议的保存温度（摄氏度）
-        4. 预计保质期（天数）
-        5. 是否适合冷冻保存（是/否）
+        # 获取冰箱当前状态
+        fridge_status = self.get_fridge_status()
         
-        请以JSON格式返回，格式如下：
-        {
-            "name": "食物名称",
-            "category": "食物类别",
-            "optimal_temperature": 温度值,
-            "expiry_days": 保质期天数,
-            "freezable": true/false
-        }
-        """
+        return f"""你是一个智慧冰箱的AI助手。用户要添加一个新物品到冰箱。
+
+冰箱配置：
+- 5层，每层4个扇区
+- 温度分布：第0层-18°C(冷冻)，第1层-5°C(冷冻)，第2层2°C(冷藏)，第3层6°C(冷藏)，第4层10°C(冷藏)
+
+温度选择规则：
+- 水果、蔬菜、乳制品、谷物、烘焙、饮料：选择2-6°C（第2-3层）
+- 肉类、海鲜：选择-5°C（第1层）
+- 冰淇淋、冷冻食品：选择-18°C（第0层）
+- 其他：选择2-6°C（第2-3层）
+- 非食物物品（乐器、工具等）：选择2-6°C（第2-3层）
+
+保质期规则：
+- 水果：3-7天
+- 蔬菜：5-10天
+- 肉类：7-30天
+- 乳制品：7-14天
+- 谷物：3-7天
+- 海鲜：3-7天
+- 烘焙：3-7天
+- 饮料：7-14天
+- 其他：5-10天
+- 非食物物品（乐器、工具等）：长期保存
+
+当前冰箱状态：
+{json.dumps(fridge_status, ensure_ascii=False, indent=2)}
+
+你的任务：
+1. 识别图片中的物品（可能是食物或非食物）
+2. 判断这种物品的最佳存储温度（-18°C到10°C之间）
+3. 判断这种物品的保质期：
+   - 如果是食物，返回具体的保质期天数（如：7、30等数字）
+   - 如果是非食物（如乐器、工具、玩具等），返回"长期"
+4. 根据最佳温度选择最合适的冰箱层
+5. 在该层找到空闲的扇区
+6. 返回JSON格式的结果，包含：
+   - food_name: 物品名称（保持VLM识别的原始名称，如"玩具车"、"小提琴"等）
+   - optimal_temp: 最佳存储温度（数字，包括负数）
+   - shelf_life_days: 保质期天数（数字，如7、30等，非食物返回"长期"）
+   - category: 物品类别
+   - level: 选择的层数
+   - section: 选择的扇区
+   - reasoning: 选择理由
+
+重要：food_name字段必须保持VLM识别的原始物品名称，不要修改为通用分类名称。
+
+重要提示：
+- 食物分类：请在以下分类中选择最合适的：
+  * 水果：苹果、橙子、香蕉、葡萄、草莓等
+  * 蔬菜：胡萝卜、土豆、洋葱、菠菜、芹菜等
+  * 肉类：牛肉、猪肉、鸡肉、鱼肉等
+  * 乳制品：牛奶、鸡蛋、奶酪、酸奶等
+  * 谷物：面包、米饭、面条、麦片、三明治、汉堡、披萨、寿司等
+  * 海鲜：鱼、虾、蟹、贝类等
+  * 烘焙：蛋糕、饼干、面包、巧克力、冰淇淋等
+  * 饮料：果汁、可乐、啤酒等
+  * 其他：如果找不到对应分类，选择"其他"
+
+分类优先级：
+- 三明治、汉堡、披萨、寿司等主食类食物优先分类为"谷物"
+- 只有真正的非食物（乐器、工具、书籍、玩具等）才分类为"非食物"
+- 食物都有保质期，非食物才是长期保存
+- 对于非食物物品，保持原始名称（如"玩具车"、"小提琴"等），不要改为"其他"
+
+识别优先级：
+- 优先识别为食物，除非明确看到乐器、工具、书籍等非食物物品
+- 如果图片模糊或无法识别，默认识别为"其他"食物
+- 不要轻易将物品识别为乐器，除非图片中明确显示乐器
+- 保留VLM的原始识别结果，不要强制修改物品名称
+
+重要：
+1. 请确保选择的层温度与物品的最佳存储温度匹配，水果蔬菜不要放在冷冻层！
+2. 保质期必须是具体的数字天数，不要写"7天"、"30天"，直接写数字7、30
+3. 只有非食物物品才返回"长期"
+4. 如果目标层满了，系统会自动选择温度最接近的其他层
+
+温度选择优先级：
+- 水果、蔬菜、乳制品、谷物、烘焙、饮料、其他：优先选择2-6°C（第2-3层），绝对不要选择-18°C或-5°C
+- 肉类、海鲜：优先选择-5°C（第1层），其次选择-18°C（第0层）
+- 冷冻食品：选择-18°C（第0层）
+
+请只返回JSON格式的结果，不要其他文字。"""
     
     def _parse_recognition_result(self, response: str) -> Dict:
         """解析识别结果"""
         try:
+            # 添加调试信息
+            logger.info(f"🔍 VLM原始响应: {response}")
+            
             # 尝试提取JSON部分
             start_idx = response.find('{')
             end_idx = response.rfind('}') + 1
             
             if start_idx != -1 and end_idx != 0:
                 json_str = response[start_idx:end_idx]
-                result = json.loads(json_str)
+                food_info = json.loads(json_str)
                 
                 # 验证必要字段
-                required_fields = ["name", "category", "optimal_temperature", "expiry_days"]
+                required_fields = ["food_name", "optimal_temp", "shelf_life_days", "category", "level", "section"]
                 for field in required_fields:
-                    if field not in result:
+                    if field not in food_info:
                         logger.warning(f"识别结果缺少字段: {field}")
-                        result[field] = self._get_default_value(field)
+                        return self._get_default_recognition_result()
+                
+                # 转换字段名以匹配原有格式
+                result = {
+                    "name": food_info["food_name"],
+                    "category": food_info["category"],
+                    "optimal_temperature": self._parse_temperature(food_info["optimal_temp"]),
+                    "expiry_days": self._parse_shelf_life(food_info["shelf_life_days"]),
+                    "freezable": food_info.get("freezable", False),
+                    "level": food_info["level"],
+                    "section": food_info["section"],
+                    "reasoning": food_info.get("reasoning", "")
+                }
                 
                 return result
             else:
@@ -238,6 +364,60 @@ class AIProcessor:
         }
         return defaults.get(field, "未知")
     
+    def _parse_temperature(self, temp_str: str) -> int:
+        """解析温度字符串，提取数字部分（包括负数）"""
+        try:
+            temp_str = str(temp_str).strip()
+            
+            # 检查是否包含负号
+            is_negative = '-' in temp_str
+            
+            # 提取数字部分
+            import re
+            numbers = re.findall(r'\d+', temp_str)
+            if numbers:
+                # 取第一个数字作为温度值
+                result = int(numbers[0])
+                # 如果原字符串包含负号，则返回负数
+                if is_negative:
+                    result = -result
+                return result
+            else:
+                return 4  # 默认温度
+        except:
+            return 4  # 默认温度
+    
+    def _parse_shelf_life(self, shelf_life_str: str) -> int:
+        """解析保质期字符串，提取数字部分"""
+        try:
+            shelf_life_str_lower = str(shelf_life_str).lower()
+            
+            # 检查是否包含长期保存的关键词
+            long_term_keywords = ['长期', '永久', '无保质期', '无期限', '长期保存', '无限期', '不限期']
+            if any(keyword in shelf_life_str_lower for keyword in long_term_keywords):
+                return -1  # 表示长期保存
+            
+            # 如果输入是纯数字，直接转换
+            try:
+                result = int(shelf_life_str)
+                if result > 0:  # 确保是正数
+                    return result
+            except ValueError:
+                pass
+            
+            # 检查是否包含"天"、"日"等时间单位
+            if '天' in shelf_life_str or '日' in shelf_life_str:
+                # 提取数字
+                import re
+                numbers = re.findall(r'\d+', str(shelf_life_str))
+                if numbers:
+                    return int(numbers[0])
+            
+            # 默认保质期
+            return 7
+        except:
+            return 7  # 默认保质期
+    
     def _get_default_recognition_result(self) -> Dict:
         """获取默认识别结果"""
         return {
@@ -251,6 +431,10 @@ class AIProcessor:
     def call_qwen_vl(self, image_path: str, prompt: str) -> Dict:
         """调用Qwen-VL模型"""
         try:
+            # 检查图片文件是否存在
+            if not os.path.exists(image_path):
+                return {"success": False, "error": f"图片文件不存在: {image_path}"}
+            
             # 读取并编码图片
             with open(image_path, 'rb') as image_file:
                 image_data = image_file.read()
@@ -263,7 +447,7 @@ class AIProcessor:
                     {
                         'role': 'user',
                         'content': [
-                            {'image': image_base64},
+                            {'image': f"data:image/jpeg;base64,{image_base64}"},
                             {'text': prompt}
                         ]
                     }
@@ -271,10 +455,36 @@ class AIProcessor:
             )
             
             if response.status_code == 200:
-                return {
-                    "success": True,
-                    "response": response.output.choices[0].message.content[0].text
-                }
+                # 添加调试信息
+                logger.info(f"API响应结构: {response.output}")
+                
+                # 正确解析响应
+                try:
+                    # 获取响应文本
+                    response_text = response.output.choices[0].message.content
+                    if isinstance(response_text, list):
+                        # 如果是列表，取第一个文本元素
+                        response_text = response_text[0]
+                    
+                    if isinstance(response_text, dict) and 'text' in response_text:
+                        response_text = response_text['text']
+                    elif isinstance(response_text, str):
+                        # 已经是字符串
+                        pass
+                    else:
+                        # 尝试其他可能的格式
+                        response_text = str(response_text)
+                    
+                    return {
+                        "success": True,
+                        "response": response_text
+                    }
+                except Exception as parse_error:
+                    logger.error(f"解析API响应失败: {parse_error}")
+                    return {
+                        "success": False,
+                        "error": f"解析响应失败: {parse_error}"
+                    }
             else:
                 return {
                     "success": False,
@@ -288,49 +498,81 @@ class AIProcessor:
     def add_item_to_fridge(self, item_info: Dict, image_path: str) -> Dict:
         """添加物品到冰箱"""
         try:
-            # 找到最佳温度层
-            optimal_temp = item_info.get("optimal_temperature", 4)
-            level = self.find_best_temperature_level(optimal_temp)
+            # 使用大模型推荐的层和扇区
+            level = item_info.get("level", 2)
+            section = item_info.get("section", 0)
+            shelf_life_days = item_info.get("expiry_days", 7)
             
-            # 找到可用位置
-            position = self._find_available_position(level)
+            # 检查扇区是否可用
+            level_str = str(level)
+            section_str = str(section)
             
-            if position is None:
-                return {"success": False, "error": "冰箱已满"}
+            if self.fridge_data["level_usage"][level_str][section_str]:
+                # 如果推荐的扇区被占用，寻找其他可用扇区
+                available_section = None
+                for sec in range(4):  # 每层4个扇区
+                    if not self.fridge_data["level_usage"][level_str][str(sec)]:
+                        available_section = sec
+                        break
+                
+                if available_section is not None:
+                    section = available_section
+                    section_str = str(section)
+                else:
+                    # 如果该层没有可用扇区，寻找其他层
+                    for lvl in range(5):  # 5层
+                        lvl_str = str(lvl)
+                        for sec in range(4):
+                            if not self.fridge_data["level_usage"][lvl_str][str(sec)]:
+                                level = lvl
+                                section = sec
+                                level_str = str(level)
+                                section_str = str(section)
+                                break
+                        if not self.fridge_data["level_usage"][level_str][section_str]:
+                            break
+                    
+                    if self.fridge_data["level_usage"][level_str][section_str]:
+                        return {"success": False, "error": "冰箱已满"}
             
             # 生成物品ID
             item_id = f"item_{int(time.time())}"
             
             # 计算过期日期
-            expiry_days = item_info.get("expiry_days", 7)
-            expiry_date = datetime.now() + timedelta(days=expiry_days)
+            if shelf_life_days == -1:
+                # 长期保存
+                expiry_date = (datetime.now() + timedelta(days=36500)).isoformat()  # 100年后
+            else:
+                expiry_date = (datetime.now() + timedelta(days=shelf_life_days)).isoformat()
             
             # 添加到冰箱数据
             self.fridge_data["items"][item_id] = {
                 "name": item_info.get("name", "未知食物"),
                 "category": item_info.get("category", "其他"),
                 "level": level,
-                "section": position["section"],
-                "optimal_temperature": optimal_temp,
-                "expiry_date": expiry_date.isoformat(),
+                "section": section,
+                "optimal_temperature": item_info.get("optimal_temperature", 4),
+                "expiry_date": expiry_date,
                 "added_date": datetime.now().isoformat(),
                 "image_path": image_path,
-                "freezable": item_info.get("freezable", False)
+                "freezable": item_info.get("freezable", False),
+                "reasoning": item_info.get("reasoning", "")
             }
             
             # 更新层和扇区占用状态
-            self.fridge_data["levels"][level]["sections"][position["section"]] = item_id
+            self.fridge_data["level_usage"][level_str][section_str] = True
             
             # 保存数据
             self.save_fridge_data()
             
-            logger.info(f"物品添加成功: {item_info.get('name')} -> 第{level}层第{position['section']}扇区")
+            logger.info(f"物品添加成功: {item_info.get('name')} -> 第{level}层第{section}扇区")
             
             return {
                 "success": True,
                 "item_id": item_id,
                 "temperature_level": level,
-                "message": f"物品已添加到第{level}层"
+                "message": f"物品已添加到第{level}层第{section}扇区",
+                "reasoning": item_info.get("reasoning", "")
             }
             
         except Exception as e:
@@ -374,7 +616,12 @@ class AIProcessor:
             
             # 从冰箱数据中移除
             del self.fridge_data["items"][item_id]
-            self.fridge_data["levels"][level]["sections"][section] = None
+            
+            # 更新层级使用情况
+            level_str = str(level)
+            section_str = str(section)
+            if level_str in self.fridge_data["level_usage"] and section_str in self.fridge_data["level_usage"][level_str]:
+                self.fridge_data["level_usage"][level_str][section_str] = False
             
             # 保存数据
             self.save_fridge_data()
@@ -454,29 +701,50 @@ class AIProcessor:
             logger.error(f"获取推荐失败: {e}")
             return {"success": False, "error": str(e)}
     
+    def get_fridge_status(self) -> Dict:
+        """获取冰箱当前状态"""
+        current_time = datetime.now()
+        inventory = []
+        
+        for item_id, item in self.fridge_data["items"].items():
+            expiry_date = datetime.fromisoformat(item["expiry_date"])
+            days_remaining = (expiry_date - current_time).days
+            
+            inventory.append({
+                "item_id": item_id,
+                "name": item["name"],
+                "category": item["category"],
+                "level": item["level"],
+                "section": item["section"],
+                "days_remaining": max(0, days_remaining),
+                "is_expired": days_remaining < 0,
+                "optimal_temp": item.get("optimal_temperature", 4)
+            })
+        
+        return {
+            "inventory": inventory,
+            "total_items": len(inventory),
+            "temperature_levels": self.temperature_levels,
+            "available_sections": self.fridge_data.get("level_usage", {})
+        }
+    
     def get_fridge_inventory(self) -> Dict:
         """获取冰箱库存"""
         try:
             inventory = []
             
-            for level in range(self.total_levels):
-                level_data = self.fridge_data["levels"][level]
-                
-                for section in range(self.sections_per_level):
-                    item_id = level_data["sections"][section]
-                    
-                    if item_id and item_id in self.fridge_data["items"]:
-                        item_data = self.fridge_data["items"][item_id]
-                        inventory.append({
-                            "item_id": item_id,
-                            "name": item_data["name"],
-                            "category": item_data["category"],
-                            "level": level,
-                            "section": section,
-                            "optimal_temperature": item_data["optimal_temperature"],
-                            "expiry_date": item_data["expiry_date"],
-                            "added_date": item_data["added_date"]
-                        })
+            # 遍历所有物品
+            for item_id, item_data in self.fridge_data["items"].items():
+                inventory.append({
+                    "item_id": item_id,
+                    "name": item_data["name"],
+                    "category": item_data["category"],
+                    "level": item_data["level"],
+                    "section": item_data["section"],
+                    "optimal_temperature": item_data.get("optimal_temp", 4),
+                    "expiry_date": item_data["expiry_date"],
+                    "added_date": item_data.get("added_time", item_data.get("added_date", ""))
+                })
             
             return {
                 "success": True,
@@ -494,27 +762,13 @@ class AIProcessor:
                 with open(self.fridge_data_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                 
-                # 兼容旧格式数据
-                if "levels" not in data:
-                    # 从level_usage转换为levels格式
-                    data["levels"] = {}
-                    for level in range(self.total_levels):
-                        data["levels"][level] = {
-                            "temperature": self.temperature_levels[level],
-                            "sections": [None] * self.sections_per_level
-                        }
-                        
-                        # 如果有level_usage数据，转换过来
-                        if "level_usage" in data:
-                            level_usage = data["level_usage"].get(str(level), {})
-                            for section in range(self.sections_per_level):
-                                if level_usage.get(str(section), False):
-                                    # 找到对应的物品ID
-                                    for item_id, item_data in data["items"].items():
-                                        if (item_data.get("level") == level and 
-                                            item_data.get("section") == section):
-                                            data["levels"][level]["sections"][section] = item_id
-                                            break
+                # 确保数据格式正确
+                if "items" not in data:
+                    data["items"] = {}
+                if "level_usage" not in data:
+                    data["level_usage"] = self._initialize_level_usage()
+                if "last_update" not in data:
+                    data["last_update"] = datetime.now().isoformat()
                 
                 return data
             else:
@@ -523,24 +777,31 @@ class AIProcessor:
             logger.error(f"加载冰箱数据失败: {e}")
             return self.initialize_fridge_data()
     
+    def _initialize_level_usage(self) -> Dict:
+        """初始化层级使用情况"""
+        level_usage = {}
+        for level in range(self.total_levels):
+            level_usage[str(level)] = {}
+            for section in range(self.sections_per_level):
+                level_usage[str(level)][str(section)] = False
+        return level_usage
+    
     def initialize_fridge_data(self) -> Dict:
         """初始化冰箱数据"""
         data = {
             "items": {},
-            "levels": {}
+            "level_usage": self._initialize_level_usage(),
+            "last_update": datetime.now().isoformat()
         }
-        
-        for level in range(self.total_levels):
-            data["levels"][level] = {
-                "temperature": self.temperature_levels[level],
-                "sections": [None] * self.sections_per_level
-            }
         
         return data
     
     def save_fridge_data(self):
         """保存冰箱数据"""
         try:
+            # 更新最后修改时间
+            self.fridge_data["last_update"] = datetime.now().isoformat()
+            
             with open(self.fridge_data_file, 'w', encoding='utf-8') as f:
                 json.dump(self.fridge_data, f, ensure_ascii=False, indent=2)
         except Exception as e:

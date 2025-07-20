@@ -847,6 +847,12 @@
                     } else if (data.type === 'action_completed') {
                         // 操作完成，显示结果
                         handleActionCompleted(data.data);
+                    } else if (data.type === 'proximity_sensor') {
+                        // 接近传感器事件，触发弹窗
+                        console.log('处理接近传感器事件:', data.data);
+                        handleProximitySensor(data.data);
+                    } else {
+                        console.log('未处理的事件类型:', data.type);
                     }
                 } catch (error) {
                     console.error('解析SSE数据失败:', error);
@@ -876,6 +882,44 @@
                 refreshData();
             } else {
                 showPhysicalButtonNotification(data.error || '操作失败', 'danger');
+            }
+        }
+        
+        // 处理接近传感器事件
+        function handleProximitySensor(data) {
+            console.log('处理接近传感器事件:', data);
+            
+            // 显示接近传感器弹窗
+            const modal = document.getElementById('proximityModal');
+            const content = document.getElementById('proximityContent');
+            
+            console.log('弹窗元素:', modal, content);
+            
+            if (modal && content) {
+                console.log('显示弹窗');
+                modal.style.display = 'block';
+                
+                // 构建弹窗内容
+                const greeting = data.greeting || '你好！';
+                const recommendation = data.recommendation || '没有特殊推荐';
+                const message = data.message || `${greeting} ${recommendation}`;
+                
+                content.innerHTML = `
+                    <div class="proximity-recommendation">
+                        <div class="proximity-greeting">${greeting}</div>
+                        <div class="proximity-main">${recommendation}</div>
+                        <div class="proximity-tip">💡 保持健康饮食</div>
+                    </div>
+                    <div class="text-center text-muted">
+                        <small>${new Date().toLocaleString()}</small>
+                    </div>
+                `;
+                
+                // 显示通知
+                showPhysicalButtonNotification(message, 'info');
+                console.log('弹窗已显示，内容:', message);
+            } else {
+                console.error('找不到弹窗元素');
             }
         }
         

@@ -13,6 +13,7 @@ import threading
 import time
 from datetime import datetime
 from typing import Dict, List, Set
+from queue import Queue, Empty
 
 # 添加路径以便导入核心系统
 import sys
@@ -32,7 +33,7 @@ class WebManager:
     
     def __init__(self):
         self.app = Flask(__name__)
-        self.sse_clients: Set[str] = set()
+        self.sse_clients: Dict[str, Queue] = {}
         self.sse_lock = threading.Lock()
         
         # 食物emoji映射
@@ -137,6 +138,11 @@ class WebManager:
         def index():
             """主页"""
             return render_template('index.html')
+        
+        @self.app.route('/test-sse')
+        def test_sse():
+            """SSE测试页面"""
+            return render_template('test_sse.html')
         
         @self.app.route('/api/fridge-status')
         def get_fridge_status():
@@ -264,7 +270,22 @@ class WebManager:
                 data = request.get_json()
                 button_type = data.get("button_type")
                 
-                if button_type == "take_out":
+                if button_type == "place":
+                    # 处理放入物品
+                    result = ai_processor.process_item_placement()
+                    
+                    if result["success"]:
+                        return jsonify({
+                            "success": True,
+                            "message": result.get("message", "物品放入成功"),
+                            "item": result.get("item")
+                        })
+                    else:
+                        return jsonify({
+                            "success": False,
+                            "error": result.get("error", "放入物品失败")
+                        })
+                elif button_type == "take_out":
                     # 处理取出物品
                     result = ai_processor.process_item_removal()
                     
@@ -335,23 +356,33 @@ class WebManager:
                 # 生成客户端ID
                 client_id = f"client_{int(time.time())}_{threading.get_ident()}"
                 
+                # 为客户端创建消息队列
+                from queue import Queue
+                client_queue = Queue()
+                
                 # 添加客户端
                 with self.sse_lock:
-                    self.sse_clients.add(client_id)
+                    self.sse_clients[client_id] = client_queue
                 
                 try:
                     # 发送连接确认
                     yield f"data: {json.dumps({'type': 'connected', 'client_id': client_id})}\n\n"
                     
-                    # 保持连接
+                    # 保持连接并发送消息
                     while True:
-                        time.sleep(1)
-                        yield f"data: {json.dumps({'type': 'heartbeat', 'timestamp': time.time()})}\n\n"
+                        try:
+                            # 等待消息，最多等待1秒
+                            message = client_queue.get(timeout=1)
+                            yield f"data: {json.dumps(message)}\n\n"
+                        except Empty:
+                            # 发送心跳
+                            yield f"data: {json.dumps({'type': 'heartbeat', 'timestamp': time.time()})}\n\n"
                         
                 except GeneratorExit:
                     # 客户端断开连接
                     with self.sse_lock:
-                        self.sse_clients.discard(client_id)
+                        if client_id in self.sse_clients:
+                            del self.sse_clients[client_id]
             
             return Response(generate(), mimetype='text/event-stream')
         
@@ -468,7 +499,17 @@ class WebManager:
         }
         
         with self.sse_lock:
-            # 这里可以添加实际的SSE通知逻辑
+            # 向所有客户端发送消息
+            for client_id, client_queue in self.sse_clients.items():
+                try:
+                    client_queue.put(message, timeout=0.1)
+                except:
+                    # 如果发送失败，移除该客户端
+                    try:
+                        del self.sse_clients[client_id]
+                    except:
+                        pass
+            
             logger.info(f"SSE通知: {event_type} -> {len(self.sse_clients)} 个客户端")
     
     def start(self, host: str = "0.0.0.0", port: int = 8080, debug: bool = False):

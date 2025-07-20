@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSE测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .event-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .event-item {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #007bff;
+            background: white;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        .modal-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            opacity: 0.7;
+        }
+        .modal-body {
+            padding: 30px;
+        }
+        .proximity-recommendation {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SSE事件测试页面</h1>
+        <p>这个页面用于测试SSE事件接收和处理。</p>
+        
+        <div>
+            <button class="btn btn-primary" onclick="testProximitySensor()">测试接近传感器事件</button>
+            <button class="btn btn-success" onclick="clearLog()">清空日志</button>
+        </div>
+        
+        <h3>事件日志:</h3>
+        <div id="eventLog" class="event-log"></div>
+    </div>
+    
+    <!-- 接近传感器弹窗 -->
+    <div id="proximityModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>👤 个性化推荐</h3>
+                <span class="close" onclick="closeProximityModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="proximityContent">
+                <div>加载中...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let eventSource = null;
+        
+        // 页面加载时连接SSE
+        document.addEventListener('DOMContentLoaded', function() {
+            connectSSE();
+        });
+        
+        function connectSSE() {
+            eventSource = new EventSource('/api/events');
+            
+            eventSource.onopen = function(event) {
+                logEvent('SSE连接已建立');
+            };
+            
+            eventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    logEvent('收到SSE事件: ' + JSON.stringify(data, null, 2));
+                    
+                    if (data.type === 'proximity_sensor') {
+                        logEvent('处理接近传感器事件');
+                        handleProximitySensor(data.data);
+                    }
+                } catch (error) {
+                    logEvent('解析SSE数据失败: ' + error);
+                }
+            };
+            
+            eventSource.onerror = function(event) {
+                logEvent('SSE连接错误: ' + JSON.stringify(event));
+                setTimeout(connectSSE, 5000);
+            };
+        }
+        
+        function handleProximitySensor(data) {
+            logEvent('显示接近传感器弹窗');
+            
+            const modal = document.getElementById('proximityModal');
+            const content = document.getElementById('proximityContent');
+            
+            if (modal && content) {
+                modal.style.display = 'block';
+                
+                const greeting = data.greeting || '你好！';
+                const recommendation = data.recommendation || '没有特殊推荐';
+                const message = data.message || `${greeting} ${recommendation}`;
+                
+                content.innerHTML = `
+                    <div class="proximity-recommendation">
+                        <div style="font-size: 1.2em; margin-bottom: 10px;">${greeting}</div>
+                        <div style="margin-bottom: 10px;">${recommendation}</div>
+                        <div>💡 保持健康饮食</div>
+                    </div>
+                    <div style="text-align: center; color: #666; margin-top: 15px;">
+                        <small>${new Date().toLocaleString()}</small>
+                    </div>
+                `;
+                
+                logEvent('弹窗内容已更新: ' + message);
+            } else {
+                logEvent('错误: 找不到弹窗元素');
+            }
+        }
+        
+        function closeProximityModal() {
+            document.getElementById('proximityModal').style.display = 'none';
+            logEvent('弹窗已关闭');
+        }
+        
+        function testProximitySensor() {
+            fetch('/api/proximity-sensor', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({detected: true})
+            })
+            .then(response => response.json())
+            .then(data => {
+                logEvent('API调用成功: ' + JSON.stringify(data));
+            })
+            .catch(error => {
+                logEvent('API调用失败: ' + error);
+            });
+        }
+        
+        function logEvent(message) {
+            const log = document.getElementById('eventLog');
+            const eventItem = document.createElement('div');
+            eventItem.className = 'event-item';
+            eventItem.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            log.appendChild(eventItem);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('eventLog').innerHTML = '';
+        }
+    </script>
+</body>
+</html> 

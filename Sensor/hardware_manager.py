@@ -81,29 +81,71 @@ class HardwareManager:
     def _init_cameras(self):
         """初始化摄像头"""
         try:
-            # 初始化内部摄像头（用于物品识别）
-            internal_cam = cv2.VideoCapture(0)
-            if internal_cam.isOpened():
-                internal_cam.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-                self.cameras[CameraType.INTERNAL] = internal_cam
-                logger.info("内部摄像头初始化成功")
-            else:
-                logger.warning("内部摄像头初始化失败")
-                self.cameras[CameraType.INTERNAL] = None
+            # 尝试不同的摄像头索引（优先使用已知可用的索引）
+            camera_indices = [0, 4, 1, 2, 3, 5, 6, 7]
             
-            # 初始化外部摄像头（用于人脸检测）
-            external_cam = cv2.VideoCapture(1)  # 尝试第二个摄像头
-            if external_cam.isOpened():
-                external_cam.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            # 找到所有可用的摄像头
+            available_cameras = []
+            for idx in camera_indices:
+                try:
+                    cam = cv2.VideoCapture(idx)
+                    if cam.isOpened():
+                        # 测试读取一帧
+                        ret, frame = cam.read()
+                        if ret and frame is not None:
+                            cam.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                            available_cameras.append((idx, cam))
+                            logger.info(f"摄像头 {idx} 可用")
+                        else:
+                            cam.release()
+                    else:
+                        cam.release()
+                except Exception as e:
+                    logger.warning(f"摄像头索引 {idx} 初始化失败: {e}")
+                    continue
+            
+            logger.info(f"找到 {len(available_cameras)} 个可用摄像头")
+            
+            if len(available_cameras) == 0:
+                logger.error("没有可用的摄像头")
+                self.cameras[CameraType.INTERNAL] = None
+                self.cameras[CameraType.EXTERNAL] = None
+                return
+            
+            # 分配摄像头
+            if len(available_cameras) >= 2:
+                # 有两个或更多摄像头，分别分配给内部和外部
+                internal_idx, internal_cam = available_cameras[0]
+                external_idx, external_cam = available_cameras[1]
+                
+                self.cameras[CameraType.INTERNAL] = internal_cam
                 self.cameras[CameraType.EXTERNAL] = external_cam
-                logger.info("外部摄像头初始化成功")
+                
+                logger.info(f"摄像头分配: 内部摄像头={internal_idx}, 外部摄像头={external_idx}")
+                
             else:
-                # 如果外部摄像头不可用，使用内部摄像头进行人脸检测
-                logger.warning("外部摄像头不可用，将使用内部摄像头进行人脸检测")
-                self.cameras[CameraType.EXTERNAL] = self.cameras[CameraType.INTERNAL]
+                # 只有一个摄像头，共享使用
+                idx, cam = available_cameras[0]
+                self.cameras[CameraType.INTERNAL] = cam
+                self.cameras[CameraType.EXTERNAL] = cam
+                
+                logger.warning(f"只有一个摄像头可用 (索引: {idx})，将共享使用")
+            
+            # 检查摄像头配置
+            internal_available = self.cameras[CameraType.INTERNAL] is not None
+            external_available = self.cameras[CameraType.EXTERNAL] is not None
+            
+            logger.info(f"摄像头配置: 内部摄像头={'可用' if internal_available else '不可用'}, 外部摄像头={'可用' if external_available else '不可用'}")
+            
+            if not internal_available:
+                logger.error("没有可用的摄像头，系统功能将受限")
+            elif not external_available:
+                logger.warning("只有一个摄像头可用，人脸检测和物品识别将共享摄像头")
                 
         except Exception as e:
             logger.error(f"摄像头初始化失败: {e}")
+            self.cameras[CameraType.INTERNAL] = None
+            self.cameras[CameraType.EXTERNAL] = None
     
     def _init_face_detection(self):
         """初始化人脸检测"""
@@ -168,13 +210,32 @@ class HardwareManager:
                 logger.error(f"摄像头 {camera_type.value} 不可用")
                 return None
             
+            # 检查摄像头是否仍然可用
+            if not camera.isOpened():
+                logger.error(f"摄像头 {camera_type.value} 已断开连接")
+                return None
+            
+            # 检查是否共享摄像头
+            internal_available = self.cameras[CameraType.INTERNAL] is not None
+            external_available = self.cameras[CameraType.EXTERNAL] is not None
+            shared_camera = internal_available and not external_available
+            
+            if shared_camera:
+                logger.info("检测到共享摄像头，等待摄像头稳定...")
+                time.sleep(0.5)  # 等待摄像头稳定
+            
             # 清空摄像头缓冲区，确保获取最新帧
             for _ in range(5):
                 camera.grab()
             
             ret, frame = camera.read()
-            if not ret:
+            if not ret or frame is None:
                 logger.error("无法读取摄像头帧")
+                return None
+            
+            # 检查帧是否有效
+            if frame.size == 0:
+                logger.error("摄像头返回空帧")
                 return None
             
             # 生成唯一文件名
@@ -186,9 +247,12 @@ class HardwareManager:
             os.makedirs("uploads", exist_ok=True)
             
             # 保存图片
-            cv2.imwrite(filepath, frame)
+            success = cv2.imwrite(filepath, frame)
+            if not success:
+                logger.error("保存图片失败")
+                return None
             
-            logger.info(f"拍照成功: {filepath}")
+            logger.info(f"拍照成功: {filepath} (尺寸: {frame.shape})")
             
             # 发送拍照事件
             event = core_system.create_event(
@@ -270,6 +334,17 @@ class HardwareManager:
     
     def _face_detection_loop(self):
         """人脸检测循环"""
+        # 检查是否只有一个摄像头可用
+        internal_available = self.cameras[CameraType.INTERNAL] is not None
+        external_available = self.cameras[CameraType.EXTERNAL] is not None
+        shared_camera = internal_available and not external_available
+        
+        if shared_camera:
+            logger.info("检测到共享摄像头模式，降低人脸检测频率")
+            detection_interval = 2.0  # 2秒检测一次
+        else:
+            detection_interval = 0.1  # 正常频率
+        
         while self.running:
             try:
                 if self.detect_faces():
@@ -289,7 +364,7 @@ class HardwareManager:
                         )
                         core_system.emit_event(event)
                 
-                time.sleep(0.1)  # 短暂休眠以减少CPU使用
+                time.sleep(detection_interval)
                 
             except Exception as e:
                 logger.error(f"人脸检测循环出错: {e}")

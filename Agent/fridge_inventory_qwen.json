@@ -10,11 +10,59 @@
       "added_time": "2025-07-19T16:55:17.447561",
       "expiry_date": "2125-06-25T16:55:17.447538",
       "reasoning": "图片中显示的物品为非食物，根据分类规则，应归类为'非食物'。由于非食物物品需要长期保存，因此选择第2层（冷藏温度2°C）作为存储位置。"
+    },
+    "item_1752977614": {
+      "name": "其他",
+      "category": "非食物",
+      "level": 2,
+      "section": 1,
+      "optimal_temperature": 4,
+      "expiry_date": "2125-06-26T03:13:34.481372",
+      "added_date": "2025-07-20T03:13:34.481386",
+      "image_path": "uploads/captured_internal_20250720_031332.jpg",
+      "freezable": false,
+      "reasoning": "图片中的物品为非食物，根据保质期规则，非食物物品应长期保存。当前第2层有空闲扇区，温度为2°C，符合非食物的存储要求。"
+    },
+    "item_1752977615": {
+      "name": "其他",
+      "category": "非食物",
+      "level": 2,
+      "section": 2,
+      "optimal_temperature": 4,
+      "expiry_date": "2125-06-26T03:13:35.515312",
+      "added_date": "2025-07-20T03:13:35.515329",
+      "image_path": "uploads/captured_internal_20250720_031332.jpg",
+      "freezable": false,
+      "reasoning": "图片中的物品为非食物，根据保质期规则，非食物物品应长期保存。当前第2层有空闲扇区，温度为2°C，符合非食物的存储要求。"
+    },
+    "item_1752977628": {
+      "name": "水",
+      "category": "饮料",
+      "level": 2,
+      "section": 3,
+      "optimal_temperature": 2,
+      "expiry_date": "2125-06-26T03:13:48.679851",
+      "added_date": "2025-07-20T03:13:48.679866",
+      "image_path": "uploads/captured_internal_20250720_031346.jpg",
+      "freezable": false,
+      "reasoning": "水属于饮料类，最佳存储温度为2°C（冷藏层），保质期为长期。"
+    },
+    "item_1752977629": {
+      "name": "水",
+      "category": "饮料",
+      "level": 0,
+      "section": 0,
+      "optimal_temperature": 2,
+      "expiry_date": "2125-06-26T03:13:49.873569",
+      "added_date": "2025-07-20T03:13:49.873583",
+      "image_path": "uploads/captured_internal_20250720_031346.jpg",
+      "freezable": false,
+      "reasoning": "水属于饮料类，最佳存储温度为2°C（冷藏层），保质期为长期。"
     }
   },
   "level_usage": {
     "0": {
-      "0": false,
+      "0": true,
       "1": false,
       "2": false,
       "3": false
@@ -27,9 +75,9 @@
     },
     "2": {
       "0": true,
-      "1": false,
-      "2": false,
-      "3": false
+      "1": true,
+      "2": true,
+      "3": true
     },
     "3": {
       "0": false,
@@ -44,5 +92,5 @@
       "3": false
     }
   },
-  "last_update": "2025-07-19T16:55:17.447567"
+  "last_update": "2025-07-20T03:13:49.873587"
 }
