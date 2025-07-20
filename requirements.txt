@@ -1,13 +1,30 @@
-# 核心依赖
-flask>=2.0.0
-opencv-python>=4.5.0
-numpy>=1.21.0
-dashscope>=1.13.0
+# Web框架
+Flask==2.3.3
+Werkzeug==2.3.7
 
-# 可选依赖（在Raspberry Pi上需要）
-# RPi.GPIO>=0.7.0
+# AI和图像处理
+opencv-python==4.8.1.78
+dashscope==1.13.6
+Pillow==10.0.1
 
-# 开发依赖
-pytest>=6.0.0
-black>=21.0.0
-flake8>=3.8.0 
+# 数据处理
+numpy==1.24.3
+pandas==2.0.3
+
+# 硬件控制 (仅限树莓派)
+RPi.GPIO==0.7.1
+
+# 系统工具
+psutil==5.9.5
+python-dateutil==2.8.2
+
+# 开发工具
+pytest==7.4.2
+pytest-cov==4.1.0
+
+# 日志
+colorlog==6.7.0
+
+# 其他工具
+requests==2.31.0
+urllib3==2.0.4 
