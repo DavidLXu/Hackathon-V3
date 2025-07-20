@@ -180,6 +180,14 @@ class HardwareManager:
             priority=1
         )
         core_system.emit_event(event)
+        
+        # 自动拍照
+        logger.info("开始拍照...")
+        image_path = self.capture_image(CameraType.INTERNAL)
+        if image_path:
+            logger.info(f"拍照完成: {image_path}")
+        else:
+            logger.error("拍照失败")
     
     def _button17_callback(self, channel):
         """GPIO17按键回调函数 - 取出物品"""
@@ -201,6 +209,16 @@ class HardwareManager:
             priority=1
         )
         core_system.emit_event(event)
+        
+        # 直接发送SSE事件通知前端显示选择弹窗
+        try:
+            from Agent.web_manager import web_manager
+            web_manager.notify_sse_clients("show_take_item_modal", {
+                "message": "请选择要取出的物品"
+            })
+            logger.info("已发送SSE事件: show_take_item_modal")
+        except Exception as e:
+            logger.error(f"发送SSE事件失败: {e}")
     
     def capture_image(self, camera_type: CameraType = CameraType.INTERNAL) -> Optional[str]:
         """拍照并保存图片"""

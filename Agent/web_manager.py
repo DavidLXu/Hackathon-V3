@@ -310,6 +310,44 @@ class WebManager:
                 logger.error(f"处理物理按钮事件失败: {e}")
                 return jsonify({"error": str(e)})
         
+        @self.app.route('/api/take-item', methods=['POST'])
+        def take_item():
+            """取出物品API"""
+            try:
+                data = request.get_json()
+                item_id = data.get("item_id")
+                
+                if not item_id:
+                    return jsonify({
+                        "success": False,
+                        "error": "缺少物品ID"
+                    })
+                
+                # 调用AI处理器取出物品
+                result = ai_processor.get_item_from_fridge(item_id)
+                
+                if result["success"]:
+                    # 发送SSE通知
+                    self.notify_sse_clients("item_taken", {
+                        "item_name": result["item"]["name"],
+                        "message": result["message"]
+                    })
+                    
+                    return jsonify({
+                        "success": True,
+                        "message": result["message"],
+                        "item": result["item"]
+                    })
+                else:
+                    return jsonify({
+                        "success": False,
+                        "error": result.get("error", "取出物品失败")
+                    })
+                    
+            except Exception as e:
+                logger.error(f"取出物品失败: {e}")
+                return jsonify({"error": str(e)})
+        
         @self.app.route('/api/proximity-sensor', methods=['POST'])
         def proximity_sensor():
             """接近传感器API"""
@@ -391,9 +429,16 @@ class WebManager:
             """获取系统状态API"""
             try:
                 status = core_system.get_status()
+                # 修复JSON序列化问题
+                serializable_status = {
+                    "running": status.get("running", False),
+                    "modules": status.get("modules", {}),
+                    "last_event": str(status.get("last_event")) if status.get("last_event") else None,
+                    "error_count": status.get("error_count", 0)
+                }
                 return jsonify({
                     "success": True,
-                    "system_status": status
+                    "system_status": serializable_status
                 })
             except Exception as e:
                 logger.error(f"获取系统状态失败: {e}")

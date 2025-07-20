@@ -73,7 +73,12 @@ class AIProcessor:
             if camera_type == "internal":
                 # 内部摄像头拍照，进行物品识别
                 logger.info(f"处理内部摄像头拍照事件: {image_path}")
-                self.process_item_recognition(image_path)
+                recognition_result = self.process_item_recognition(image_path)
+                
+                if recognition_result["success"]:
+                    logger.info(f"物品识别和添加成功: {recognition_result.get('item_id')}")
+                else:
+                    logger.error(f"物品识别失败: {recognition_result.get('error')}")
             else:
                 logger.info(f"处理外部摄像头拍照事件: {image_path}")
                 
@@ -88,11 +93,12 @@ class AIProcessor:
             
             if button_type == "place_item":
                 logger.info("处理放入物品按钮事件")
-                # 直接处理物品放置
-                self.process_item_placement()
+                # 不直接处理，等待拍照事件
+                logger.info("等待拍照事件...")
             elif button_type == "take_item":
                 logger.info("处理取出物品按钮事件")
-                self.process_item_removal()
+                # 不直接处理，让前端弹窗选择
+                logger.info("等待前端用户选择物品...")
                 
         except Exception as e:
             logger.error(f"处理按钮事件失败: {e}")

@@ -602,6 +602,96 @@
             transform: scale(1.05);
         }
         
+        /* 取出物品弹窗样式 */
+        .take-item-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .take-item-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .take-item-option:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .take-item-option .item-emoji {
+            font-size: 2rem;
+            margin-right: 15px;
+            width: 50px;
+            text-align: center;
+        }
+        
+        .take-item-option .item-details {
+            flex: 1;
+        }
+        
+        .take-item-option .item-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .take-item-option .item-location {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 3px;
+        }
+        
+        .take-item-option .item-expiry {
+            font-size: 0.8rem;
+            color: #999;
+        }
+        
+        .take-item-option .item-action {
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+        
+        .take-item-option.expired-item {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+        
+        .take-item-option.expired-item .item-expiry {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .take-item-option.expiring-item {
+            border-color: #fd7e14;
+            background: #fff9f0;
+        }
+        
+        .take-item-option.expiring-item .item-expiry {
+            color: #fd7e14;
+            font-weight: bold;
+        }
+        
+        .no-items {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+            font-style: italic;
+        }
+        
+        .error {
+            text-align: center;
+            color: #dc3545;
+            padding: 40px;
+        }
+        
         @media (max-width: 768px) {
             .fridge-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -708,6 +798,21 @@
             <div class="modal-body" id="proximityContent">
                 <div class="loading">
                     <i class="fas fa-spinner fa-spin"></i> 分析中...
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 取出物品选择弹窗 -->
+    <div id="takeItemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-hand-holding"></i> 选择要取出的物品</h3>
+                <span class="close" onclick="closeTakeItemModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="takeItemContent">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> 加载中...
                 </div>
             </div>
         </div>
@@ -851,6 +956,15 @@
                         // 接近传感器事件，触发弹窗
                         console.log('处理接近传感器事件:', data.data);
                         handleProximitySensor(data.data);
+                    } else if (data.type === 'show_take_item_modal') {
+                        // 显示取出物品选择弹窗
+                        console.log('显示取出物品选择弹窗:', data.data);
+                        showTakeItemModal();
+                    } else if (data.type === 'item_taken') {
+                        // 物品取出成功
+                        console.log('物品取出成功:', data.data);
+                        showPhysicalButtonNotification(data.data.message, 'success');
+                        refreshData();
                     } else {
                         console.log('未处理的事件类型:', data.type);
                     }
@@ -1628,6 +1742,83 @@
         // 关闭接近传感器弹窗
         function closeProximityModal() {
             document.getElementById('proximityModal').style.display = 'none';
+        }
+        
+        // 显示取出物品选择弹窗
+        function showTakeItemModal() {
+            const modal = document.getElementById('takeItemModal');
+            const content = document.getElementById('takeItemContent');
+            
+            // 获取当前冰箱物品
+            fetch('/api/fridge-status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.items && data.items.length > 0) {
+                        // 构建物品选择列表
+                        let itemsHtml = '<div class="take-item-list">';
+                        data.items.forEach(item => {
+                            const expiryClass = item.expiry_progress.status === 'expired' ? 'expired-item' : 
+                                              item.expiry_progress.status === 'expiring_soon' ? 'expiring-item' : '';
+                            
+                            itemsHtml += `
+                                <div class="take-item-option ${expiryClass}" onclick="selectTakeItem('${item.id}')">
+                                    <div class="item-emoji">${item.emoji}</div>
+                                    <div class="item-details">
+                                        <div class="item-name">${item.name}</div>
+                                        <div class="item-location">第${item.level}层第${item.section}扇区</div>
+                                        <div class="item-expiry">${item.expiry_progress.text}</div>
+                                    </div>
+                                    <div class="item-action">
+                                        <i class="fas fa-hand-holding"></i>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        itemsHtml += '</div>';
+                        
+                        content.innerHTML = itemsHtml;
+                    } else {
+                        content.innerHTML = '<div class="no-items">冰箱中没有物品</div>';
+                    }
+                    
+                    modal.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('获取冰箱状态失败:', error);
+                    content.innerHTML = '<div class="error">加载失败，请重试</div>';
+                    modal.style.display = 'block';
+                });
+        }
+        
+        // 选择要取出的物品
+        function selectTakeItem(itemId) {
+            // 调用后端API取出物品
+            fetch('/api/take-item', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ item_id: itemId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeTakeItemModal();
+                    showPhysicalButtonNotification(data.message, 'success');
+                    refreshData();
+                } else {
+                    showPhysicalButtonNotification(data.error || '取出物品失败', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('取出物品失败:', error);
+                showPhysicalButtonNotification('取出物品失败', 'danger');
+            });
+        }
+        
+        // 关闭取出物品弹窗
+        function closeTakeItemModal() {
+            document.getElementById('takeItemModal').style.display = 'none';
         }
         
         // 放置物品功能
