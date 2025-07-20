@@ -222,12 +222,101 @@
             margin-bottom: 15px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             border-left: 5px solid #667eea;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .recommendation-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* 优先级样式 */
+        .recommendation-card.priority-1 {
+            border-left-color: #dc3545;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+        }
+        
+        .recommendation-card.priority-2 {
+            border-left-color: #fd7e14;
+            background: linear-gradient(135deg, #fff8f0 0%, #ffe8d1 100%);
+        }
+        
+        .recommendation-card.priority-3 {
+            border-left-color: #ffc107;
+            background: linear-gradient(135deg, #fffbf0 0%, #fff3cd 100%);
+        }
+        
+        .recommendation-card.priority-4 {
+            border-left-color: #28a745;
+            background: linear-gradient(135deg, #f0fff4 0%, #d4edda 100%);
+        }
+        
+        .recommendation-card.priority-5 {
+            border-left-color: #6c757d;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        /* 过期警告样式 */
+        .recommendation-card.expired-warning {
+            border-left-color: #dc3545;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+            animation: pulse 2s infinite;
+        }
+        
+        .recommendation-card.expiring-warning {
+            border-left-color: #fd7e14;
+            background: linear-gradient(135deg, #fff8f0 0%, #ffe8d1 100%);
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3); }
+            50% { box-shadow: 0 5px 25px rgba(220, 53, 69, 0.6); }
+            100% { box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3); }
+        }
+        
+        /* AI摘要卡片样式 */
+        .ai-summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .ai-summary-title {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .ai-summary-content {
+            font-size: 1em;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+        
+        /* 优先级徽章 */
+        .priority-badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
         }
         
         .recommendation-title {
             font-weight: bold;
             color: #333;
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
         
         .recommendation-message {
@@ -1368,33 +1457,100 @@
                 .then(data => {
                     const recommendationsList = document.getElementById('recommendationsList');
                     
-                    if (data.success && data.recommendations.length > 0) {
+                    if (data.success && (data.ai_recommendations && data.ai_recommendations.length > 0 || data.expired_items.length > 0 || data.expiring_soon_items.length > 0)) {
                         let recommendationsHTML = '';
-                        data.recommendations.forEach(rec => {
-                            // 生成物品emoji列表
-                            let itemsEmoji = '';
-                            if (rec.items && rec.items.length > 0) {
-                                itemsEmoji = rec.items.map(item => {
-                                    const emoji = getFoodEmoji(item.name, item.category);
-                                    return `<span class="item-emoji" title="${item.name}">${emoji}</span>`;
-                                }).join(' ');
-                            }
-                            
+                        
+                        // 显示AI推荐摘要
+                        if (data.summary) {
                             recommendationsHTML += `
-                                <div class="recommendation-card">
-                                    <div class="recommendation-title">
-                                        <i class="fas fa-lightbulb"></i> ${rec.title}
+                                <div class="ai-summary-card">
+                                    <div class="ai-summary-title">
+                                        <i class="fas fa-robot"></i> AI智能推荐摘要
                                     </div>
-                                    <div class="recommendation-message">
-                                        ${rec.message}
-                                    </div>
-                                    ${itemsEmoji ? `<div class="recommendation-items">${itemsEmoji}</div>` : ''}
-                                    <div class="recommendation-action">
-                                        💡 ${rec.action}
+                                    <div class="ai-summary-content">
+                                        ${data.summary}
                                     </div>
                                 </div>
                             `;
-                        });
+                        }
+                        
+                        // 显示AI推荐
+                        if (data.ai_recommendations && data.ai_recommendations.length > 0) {
+                            data.ai_recommendations.forEach(rec => {
+                                // 生成物品emoji列表
+                                let itemsEmoji = '';
+                                if (rec.items && rec.items.length > 0) {
+                                    itemsEmoji = rec.items.map(item => {
+                                        const emoji = item.emoji || getFoodEmoji(item.name, item.category);
+                                        return `<span class="item-emoji" title="${item.name}">${emoji}</span>`;
+                                    }).join(' ');
+                                }
+                                
+                                // 根据优先级设置样式
+                                const priorityClass = rec.priority ? `priority-${rec.priority}` : '';
+                                const priorityIcon = rec.priority === 1 ? '🔥' : rec.priority === 2 ? '⚡' : '💡';
+                                
+                                recommendationsHTML += `
+                                    <div class="recommendation-card ${priorityClass}">
+                                        <div class="recommendation-title">
+                                            ${priorityIcon} ${rec.title}
+                                            ${rec.priority ? `<span class="priority-badge">P${rec.priority}</span>` : ''}
+                                        </div>
+                                        <div class="recommendation-message">
+                                            ${rec.message}
+                                        </div>
+                                        ${itemsEmoji ? `<div class="recommendation-items">${itemsEmoji}</div>` : ''}
+                                        <div class="recommendation-action">
+                                            💡 ${rec.action}
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                        }
+                        
+                        // 显示过期物品警告
+                        if (data.expired_items && data.expired_items.length > 0) {
+                            recommendationsHTML += `
+                                <div class="recommendation-card priority-1 expired-warning">
+                                    <div class="recommendation-title">
+                                        🔥 过期物品警告
+                                    </div>
+                                    <div class="recommendation-message">
+                                        发现 ${data.expired_items.length} 个过期物品，建议立即处理
+                                    </div>
+                                    <div class="recommendation-items">
+                                        ${data.expired_items.map(item => 
+                                            `<span class="item-emoji" title="${item.name}">${item.emoji || getFoodEmoji(item.name, item.category)}</span>`
+                                        ).join(' ')}
+                                    </div>
+                                    <div class="recommendation-action">
+                                        ⚠️ 立即取出过期物品
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        // 显示即将过期物品提醒
+                        if (data.expiring_soon_items && data.expiring_soon_items.length > 0) {
+                            recommendationsHTML += `
+                                <div class="recommendation-card priority-2 expiring-warning">
+                                    <div class="recommendation-title">
+                                        ⚡ 即将过期提醒
+                                    </div>
+                                    <div class="recommendation-message">
+                                        发现 ${data.expiring_soon_items.length} 个即将过期的物品，建议优先食用
+                                    </div>
+                                    <div class="recommendation-items">
+                                        ${data.expiring_soon_items.map(item => 
+                                            `<span class="item-emoji" title="${item.name}">${item.emoji || getFoodEmoji(item.name, item.category)}</span>`
+                                        ).join(' ')}
+                                    </div>
+                                    <div class="recommendation-action">
+                                        ⏰ 优先食用即将过期物品
+                                    </div>
+                                </div>
+                            `;
+                        }
                         
                         // 获取大模型生成的时间建议
                         fetch('/api/time-advice')
@@ -1522,20 +1678,20 @@
                                 </div>
                                 <div class="category-info-content">
                                     <div class="category-item">
-                                        <span class="category-icon">⚠️</span>
-                                        <span class="category-text">即将过期物品：提醒用户尽快处理</span>
+                                        <span class="category-icon">🔥</span>
+                                        <span class="category-text">高优先级：过期物品、紧急处理</span>
                                     </div>
                                     <div class="category-item">
-                                        <span class="category-icon">✅</span>
-                                        <span class="category-text">新鲜物品：显示可放心食用的物品</span>
-                                    </div>
-                                    <div class="category-item">
-                                        <span class="category-icon">🔄</span>
-                                        <span class="category-text">长期保存物品：显示无需担心过期的物品</span>
+                                        <span class="category-icon">⚡</span>
+                                        <span class="category-text">中优先级：即将过期、重要提醒</span>
                                     </div>
                                     <div class="category-item">
                                         <span class="category-icon">💡</span>
-                                        <span class="category-text">一般建议：当没有特殊情况时的友好提示</span>
+                                        <span class="category-text">一般建议：营养搭配、烹饪建议</span>
+                                    </div>
+                                    <div class="category-item">
+                                        <span class="category-icon">🤖</span>
+                                        <span class="category-text">AI智能推荐：基于食物关系和时间分析</span>
                                     </div>
                                 </div>
                             </div>
@@ -1546,6 +1702,7 @@
                         recommendationsHTML += timeAdvice + categoryInfo + `
                             <div class="text-center text-muted mt-3">
                                 <small>🕐 推荐更新时间: ${updateTime}</small>
+                                ${data.total_recommendations ? `<br><small>🤖 AI推荐数量: ${data.total_recommendations}</small>` : ''}
                             </div>
                         `;
                         
@@ -1606,42 +1763,6 @@
                             </div>
                         `;
                     }
-                    
-                    const categoryInfo = `
-                        <div class="category-info-card">
-                            <div class="category-info-title">
-                                <i class="fas fa-info-circle"></i> 推荐分类说明
-                            </div>
-                            <div class="category-info-content">
-                                <div class="category-item">
-                                    <span class="category-icon">⚠️</span>
-                                    <span class="category-text">即将过期物品：提醒用户尽快处理</span>
-                                </div>
-                                <div class="category-item">
-                                    <span class="category-icon">✅</span>
-                                    <span class="category-text">新鲜物品：显示可放心食用的物品</span>
-                                </div>
-                                <div class="category-item">
-                                    <span class="category-icon">🔄</span>
-                                    <span class="category-text">长期保存物品：显示无需担心过期的物品</span>
-                                </div>
-                                <div class="category-item">
-                                    <span class="category-icon">💡</span>
-                                    <span class="category-text">一般建议：当没有特殊情况时的友好提示</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    document.getElementById('recommendationsList').innerHTML = `
-                        <div class="text-center text-muted">
-                            <i class="fas fa-check-circle fa-3x mb-3"></i>
-                            <p>一切正常，没有特殊推荐</p>
-                            <small>🕐 推荐更新时间: ${new Date().toLocaleTimeString()}</small>
-                        </div>
-                        ${timeAdvice}
-                        ${categoryInfo}
-                    `;
                 });
         }
         

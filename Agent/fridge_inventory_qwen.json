@@ -19,22 +19,10 @@
       "section": 4,
       "optimal_temperature": 4,
       "expiry_date": "2025-07-27T04:53:31.307832",
-      "added_date": "2025-07-20T04:53:31.307853",
+      "added_date": "2025-07-18T04:53:31.307853",
       "image_path": "uploads/captured_internal_20250720_045329.jpg",
       "freezable": false,
       "reasoning": "苹果属于水果类，最佳存储温度为4°C（第1层），保质期为7天。"
-    },
-    "item_1752983727": {
-      "name": "花生",
-      "category": "谷物",
-      "level": 1,
-      "section": 5,
-      "optimal_temperature": 4,
-      "expiry_date": "2025-07-23T04:55:27.824344",
-      "added_date": "2025-07-20T04:55:27.824373",
-      "image_path": "uploads/captured_internal_20250720_045525.jpg",
-      "freezable": false,
-      "reasoning": "花生属于谷物类食物，最佳存储温度为4°C（第1层），保质期为3天。当前第1层的第2扇区为空闲，因此选择该扇区进行存储。"
     },
     "item_1752983745": {
       "name": "土豆",
@@ -60,24 +48,48 @@
       "freezable": false,
       "reasoning": "图片中的物品是肉，最佳存储温度为-5°C（第0层），保质期为7天。"
     },
-    "item_1752984382": {
-      "name": "不明物品",
-      "category": "其他",
+    "item_1752996289": {
+      "name": "饮料",
+      "category": "饮料",
       "level": 1,
       "section": 1,
       "optimal_temperature": 4,
-      "expiry_date": "2125-06-26T05:06:22.784179",
-      "added_date": "2025-07-20T05:06:22.784197",
-      "image_path": "uploads/captured_internal_20250720_050620.jpg",
+      "expiry_date": "2025-07-27T15:24:49.366991",
+      "added_date": "2025-07-20T15:24:49.367011",
+      "image_path": "uploads/captured_internal_20250720_152447.jpg",
       "freezable": false,
-      "reasoning": "图片模糊，无法识别具体物品，但根据优先级规则，非食物物品应选择第1层（4°C）保存。"
+      "reasoning": "图片中的物品为饮料，最佳存储温度为4°C（第1层），保质期为7天。"
+    },
+    "item_1752996407": {
+      "name": "冰淇淋",
+      "category": "烘焙",
+      "level": 0,
+      "section": 2,
+      "optimal_temperature": -5,
+      "expiry_date": "2025-07-22T15:26:47.581804",
+      "added_date": "2025-07-20T15:26:47.581823",
+      "image_path": "uploads/captured_internal_20250720_152645.jpg",
+      "freezable": false,
+      "reasoning": "图片中的物品是冰淇淋，属于冷冻食品，应存放在-5°C的第0层。由于是非食物物品，保质期为长期。"
+    },
+    "item_1752996447": {
+      "name": "青菜",
+      "category": "蔬菜",
+      "level": 1,
+      "section": 2,
+      "optimal_temperature": 4,
+      "expiry_date": "2025-07-30T15:27:27.270728",
+      "added_date": "2025-07-20T15:27:27.270749",
+      "image_path": "uploads/captured_internal_20250720_152725.jpg",
+      "freezable": false,
+      "reasoning": "青菜属于蔬菜，最佳存储温度为4°C（第1层），保质期为5-10天，选择第1层的第4个扇区。"
     }
   },
   "level_usage": {
     "0": {
       "0": true,
       "1": true,
-      "2": false,
+      "2": true,
       "3": false,
       "4": false,
       "5": false
@@ -85,11 +97,11 @@
     "1": {
       "0": true,
       "1": true,
-      "2": false,
+      "2": true,
       "3": false,
       "4": true,
-      "5": true
+      "5": false
     }
   },
-  "last_update": "2025-07-20T05:06:22.784203"
+  "last_update": "2025-07-20T15:27:27.270758"
 }

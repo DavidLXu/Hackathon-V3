@@ -1,0 +1,96 @@
+Metadata-Version: 2.1
+Name: bmm150
+Version: 0.2.2
+Summary: A pure python API for the bmm150 magnetic sensor
+Home-page: https://gitlab.com/umoreau/bmm150
+License: MIT
+Author: Ulysse Moreau
+Author-email: ulysse.moreau@gmx.fr
+Requires-Python: >=3.7,<4.0
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Education
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: Software Development :: Embedded Systems
+Requires-Dist: enum-tools (>=0.9.0.post1,<0.10.0)
+Requires-Dist: smbus2 (>=0.4.2,<0.5.0)
+Project-URL: Documentation, https://bmm150.readthedocs.io/
+Project-URL: Repository, https://gitlab.com/umoreau/bmm150
+Description-Content-Type: text/markdown
+
+# BMM150
+
+A pure python API for the bmm150 magnetic sensor.
+
+> Note : Most code logic comes from one of the following repos : [Seed-Studio/Grove_3_Axis_Compass_V2.0_BMM150](https://github.com/Seeed-Studio/Grove_3_Axis_Compass_V2.0_BMM150) or [BoschSensortec/BMM150-Sensor-API](https://github.com/BoschSensortec/BMM150-Sensor-API) . This is mostly a transpilation and a python packaging of this code.
+
+# Installation
+
+The easiest way to install this library is using pip:
+
+```bash
+pip install bmm150
+```
+
+# Documentation
+
+The documentation is built using sphinx and the readthedocs theme. You can find it on the [readthedocs official website](https://bmm150.readthedocs.io/).
+
+# Usage
+
+The following code initializes the sensor, and prints the magnetic field values for x, y and z.
+Then, using the `atan2` function from the `math` standard library, it retrieves the heading of the sensor.
+
+```python
+import bmm150
+import math
+
+device = bmm150.BMM150()  # Bus number will default to 1
+
+x, y, z = device.read_mag_data()
+
+heading_rads = math.atan2(x, y)
+
+heading_degrees = math.degrees(heading_rads)
+
+print(f"X : {x:.2f}µT")
+print(f"Y : {y:.2f}µT")
+print(f"Z : {z:.2f}µT")
+
+print(f"Heading: {heading_degs:.2f}°")
+```
+
+# Development
+
+This library uses poetry as a development tool.
+
+You can start development by running :
+
+```bash
+poetry install
+```
+
+# Testing
+
+You can test this library using :
+
+```bash
+poetry run pytest
+```
+
+# Tox
+
+You can test multiple python versions using tox :
+
+```bash
+poetry run tox
+```

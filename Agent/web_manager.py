@@ -234,7 +234,10 @@ class WebManager:
                     "expired_items": [],
                     "expiring_soon_items": [],
                     "take_out_item": None,
-                    "suggestions": recommendations.get("suggestions", [])
+                    "suggestions": recommendations.get("suggestions", []),
+                    "ai_recommendations": recommendations.get("ai_recommendations", []),
+                    "total_recommendations": recommendations.get("total_recommendations", 0),
+                    "summary": recommendations.get("summary", "")
                 }
                 
                 # 处理过期物品
@@ -261,6 +264,12 @@ class WebManager:
                         **take_out_item,
                         "emoji": emoji
                     }
+                
+                # 处理AI推荐，为每个推荐中的物品添加emoji
+                for rec in processed_recommendations["ai_recommendations"]:
+                    for item in rec.get("items", []):
+                        if "emoji" not in item:
+                            item["emoji"] = self.get_food_emoji(item["name"], item["category"])
                 
                 return jsonify(processed_recommendations)
                 
