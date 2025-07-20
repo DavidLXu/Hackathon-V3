@@ -286,19 +286,19 @@ class WebManager:
                             "error": result.get("error", "放入物品失败")
                         })
                 elif button_type == "take_out":
-                    # 处理取出物品
-                    result = ai_processor.process_item_removal()
-                    
-                    if result["success"]:
+                    # 处理取出物品 - 直接发送SSE事件让前端弹窗
+                    try:
+                        self.notify_sse_clients("show_take_item_modal", {
+                            "message": "请选择要取出的物品"
+                        })
                         return jsonify({
                             "success": True,
-                            "message": result.get("message", "物品取出成功"),
-                            "item": result.get("item")
+                            "message": "已触发物品选择弹窗"
                         })
-                    else:
+                    except Exception as e:
                         return jsonify({
                             "success": False,
-                            "error": result.get("error", "取出物品失败")
+                            "error": f"触发弹窗失败: {str(e)}"
                         })
                 else:
                     return jsonify({

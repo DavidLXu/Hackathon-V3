@@ -2027,7 +2027,7 @@
         
         // 取出物品
         function takeOutItem(itemId) {
-            fetch('/api/take-out', {
+            fetch('/api/take-item', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -2037,15 +2037,15 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('物品取出成功！');
+                    showPhysicalButtonNotification('物品取出成功！', 'success');
                     refreshData();
                     exitTakeOutMode();
                 } else {
-                    alert('取出失败: ' + data.error);
+                    showPhysicalButtonNotification('取出失败: ' + data.error, 'danger');
                 }
             })
             .catch(error => {
-                alert('请求失败: ' + error);
+                showPhysicalButtonNotification('请求失败: ' + error, 'danger');
             });
         }
     </script>
