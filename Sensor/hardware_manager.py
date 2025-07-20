@@ -210,13 +210,22 @@ class HardwareManager:
         )
         core_system.emit_event(event)
         
-        # 直接发送SSE事件通知前端显示选择弹窗
+        # 直接调用前端的取出物品逻辑
         try:
             from Agent.web_manager import web_manager
+            # 发送SSE事件触发前端取出物品弹窗
             web_manager.notify_sse_clients("show_take_item_modal", {
                 "message": "请选择要取出的物品"
             })
             logger.info("已发送SSE事件: show_take_item_modal")
+            
+            # 同时发送按钮按下通知
+            web_manager.notify_sse_clients("button_pressed", {
+                "button_type": "take_out",
+                "message": "红色按钮已按下，请选择要取出的物品"
+            })
+            logger.info("已发送按钮按下通知")
+            
         except Exception as e:
             logger.error(f"发送SSE事件失败: {e}")
     

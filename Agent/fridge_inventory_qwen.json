@@ -1,52 +1,40 @@
 {
   "items": {
-    "item_1752977628": {
+    "item_1752983164": {
       "name": "水",
       "category": "饮料",
       "level": 1,
-      "section": 2,
+      "section": 0,
       "optimal_temperature": 4,
-      "expiry_date": "2125-06-26T03:13:48.679851",
-      "added_date": "2025-07-20T03:13:48.679866",
-      "image_path": "uploads/captured_internal_20250720_031346.jpg",
+      "expiry_date": "2025-07-27T04:46:04.482423",
+      "added_date": "2025-07-20T04:46:04.482442",
+      "image_path": "uploads/captured_internal_20250720_044602.jpg",
       "freezable": false,
-      "reasoning": "水属于饮料类，最佳存储温度为4°C（冷藏层），保质期为长期。"
+      "reasoning": "水属于饮料类，最佳存储温度为4°C（第1层），保质期为7天。"
     },
-    "item_1752982144": {
-      "name": "书籍",
-      "category": "非食物",
-      "level": 0,
-      "section": 3,
-      "optimal_temperature": 4,
-      "expiry_date": "2125-06-26T04:29:04.190479",
-      "added_date": "2025-07-20T04:29:04.190508",
-      "image_path": "uploads/captured_internal_20250720_042902.jpg",
-      "freezable": false,
-      "reasoning": "图片中的物品为书籍，属于非食物类别，保质期为长期，因此选择第1层的空闲扇区进行存储。"
-    },
-    "item_1752982156": {
+    "item_1752983398": {
       "name": "水",
       "category": "饮料",
-      "level": 0,
-      "section": 4,
+      "level": 1,
+      "section": 1,
       "optimal_temperature": 4,
-      "expiry_date": "2125-06-26T04:29:16.460451",
-      "added_date": "2025-07-20T04:29:16.460482",
-      "image_path": "uploads/captured_internal_20250720_042914.jpg",
+      "expiry_date": "2125-06-26T04:49:58.443386",
+      "added_date": "2025-07-20T04:49:58.443415",
+      "image_path": "uploads/captured_internal_20250720_044956.jpg",
       "freezable": false,
-      "reasoning": "水属于饮料类，最佳存储温度为4°C（第1层），保质期为长期。"
+      "reasoning": "水属于饮料类，最佳存储温度为4°C（第1层），非食物物品长期保存。当前第1层有空闲扇区，因此选择第1层的第0个扇区。"
     },
-    "item_1752982188": {
-      "name": "其他",
+    "item_1752983413": {
+      "name": "小提琴",
       "category": "非食物",
-      "level": 0,
-      "section": 5,
+      "level": 1,
+      "section": 2,
       "optimal_temperature": 4,
-      "expiry_date": "2125-06-26T04:29:48.075218",
-      "added_date": "2025-07-20T04:29:48.075240",
-      "image_path": "uploads/captured_internal_20250720_042946.jpg",
+      "expiry_date": "2125-06-26T04:50:13.323388",
+      "added_date": "2025-07-20T04:50:13.323402",
+      "image_path": "uploads/captured_internal_20250720_045011.jpg",
       "freezable": false,
-      "reasoning": "图片中的物品为非食物，根据分类优先级和保质期规则，选择第1层（4°C）进行存储。"
+      "reasoning": "图片中的物品为小提琴，属于非食物物品，根据规则应选择4°C的第1层进行存储。"
     }
   },
   "level_usage": {
@@ -54,18 +42,18 @@
       "0": false,
       "1": false,
       "2": false,
-      "3": true,
-      "4": true,
-      "5": true
+      "3": false,
+      "4": false,
+      "5": false
     },
     "1": {
-      "0": false,
-      "1": false,
+      "0": true,
+      "1": true,
       "2": true,
       "3": false,
       "4": false,
       "5": false
     }
   },
-  "last_update": "2025-07-20T04:38:12.373087"
+  "last_update": "2025-07-20T04:50:24.587512"
 }

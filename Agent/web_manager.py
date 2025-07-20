@@ -5,7 +5,7 @@ Web服务管理器
 专门处理Web界面和API服务
 """
 
-from flask import Flask, render_template, jsonify, request, Response
+from flask import Flask, render_template, jsonify, request, Response, send_from_directory
 import json
 import os
 import logging
@@ -143,6 +143,11 @@ class WebManager:
         def test_sse():
             """SSE测试页面"""
             return render_template('test_sse.html')
+        
+        @self.app.route('/test-sse-connection')
+        def test_sse_connection():
+            """SSE连接测试页面"""
+            return send_from_directory('.', 'test_sse_connection.html')
         
         @self.app.route('/api/fridge-status')
         def get_fridge_status():

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SSE连接测试</title>
+</head>
+<body>
+    <h1>SSE连接测试</h1>
+    <div id="status">连接状态: 未连接</div>
+    <div id="messages"></div>
+    
+    <script>
+        let eventSource = null;
+        
+        function connectSSE() {
+            eventSource = new EventSource('/api/events');
+            
+            eventSource.onopen = function(event) {
+                console.log('SSE连接已建立');
+                document.getElementById('status').textContent = '连接状态: 已连接';
+            };
+            
+            eventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log('收到SSE事件:', data);
+                    
+                    const messagesDiv = document.getElementById('messages');
+                    const messageDiv = document.createElement('div');
+                    messageDiv.innerHTML = `<p><strong>${new Date().toLocaleTimeString()}</strong>: ${JSON.stringify(data)}</p>`;
+                    messagesDiv.appendChild(messageDiv);
+                    
+                    // 如果是show_take_item_modal事件，显示特殊提示
+                    if (data.type === 'show_take_item_modal') {
+                        alert('收到show_take_item_modal事件！');
+                    }
+                    
+                } catch (error) {
+                    console.error('解析SSE数据失败:', error);
+                }
+            };
+            
+            eventSource.onerror = function(event) {
+                console.error('SSE连接错误:', event);
+                document.getElementById('status').textContent = '连接状态: 连接错误';
+                setTimeout(connectSSE, 5000);
+            };
+        }
+        
+        // 页面加载时连接SSE
+        window.onload = function() {
+            connectSSE();
+        };
+    </script>
+</body>
+</html> 
