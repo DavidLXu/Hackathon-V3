@@ -210,24 +210,27 @@ class HardwareManager:
         )
         core_system.emit_event(event)
         
-        # 直接调用前端的取出物品逻辑
+        # 直接调用API触发前端弹窗
         try:
-            from Agent.web_manager import web_manager
-            # 发送SSE事件触发前端取出物品弹窗
-            web_manager.notify_sse_clients("show_take_item_modal", {
-                "message": "请选择要取出的物品"
-            })
-            logger.info("已发送SSE事件: show_take_item_modal")
+            import requests
+            response = requests.post(
+                'http://localhost:8080/api/physical-button',
+                json={'button_type': 'take_out'},
+                headers={'Content-Type': 'application/json'},
+                timeout=5
+            )
             
-            # 同时发送按钮按下通知
-            web_manager.notify_sse_clients("button_pressed", {
-                "button_type": "take_out",
-                "message": "红色按钮已按下，请选择要取出的物品"
-            })
-            logger.info("已发送按钮按下通知")
-            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get('success'):
+                    logger.info("API调用成功，已触发前端弹窗")
+                else:
+                    logger.error(f"API调用失败: {result.get('error')}")
+            else:
+                logger.error(f"API调用失败，状态码: {response.status_code}")
+                
         except Exception as e:
-            logger.error(f"发送SSE事件失败: {e}")
+            logger.error(f"API调用失败: {e}")
     
     def capture_image(self, camera_type: CameraType = CameraType.INTERNAL) -> Optional[str]:
         """拍照并保存图片"""

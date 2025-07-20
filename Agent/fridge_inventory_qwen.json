@@ -59,6 +59,18 @@
       "image_path": "uploads/captured_internal_20250720_045637.jpg",
       "freezable": false,
       "reasoning": "图片中的物品是肉，最佳存储温度为-5°C（第0层），保质期为7天。"
+    },
+    "item_1752984382": {
+      "name": "不明物品",
+      "category": "其他",
+      "level": 1,
+      "section": 1,
+      "optimal_temperature": 4,
+      "expiry_date": "2125-06-26T05:06:22.784179",
+      "added_date": "2025-07-20T05:06:22.784197",
+      "image_path": "uploads/captured_internal_20250720_050620.jpg",
+      "freezable": false,
+      "reasoning": "图片模糊，无法识别具体物品，但根据优先级规则，非食物物品应选择第1层（4°C）保存。"
     }
   },
   "level_usage": {
@@ -72,12 +84,12 @@
     },
     "1": {
       "0": true,
-      "1": false,
+      "1": true,
       "2": false,
       "3": false,
       "4": true,
       "5": true
     }
   },
-  "last_update": "2025-07-20T04:56:39.903866"
+  "last_update": "2025-07-20T05:06:22.784203"
 }

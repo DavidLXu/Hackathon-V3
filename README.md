@@ -1,217 +1,213 @@
-# 智慧冰箱管理系统
+# 智慧冰箱系统
 
-一个基于树莓派的智能冰箱管理系统，集成了AI图像识别、硬件控制、Web界面等功能。
+## 概述
 
-## 🚀 项目特性
+这是一个基于事件驱动架构的智慧冰箱系统，采用模块化设计，支持物品识别、智能推荐、人脸检测等功能。
 
-### 核心功能
-- **AI图像识别**: 使用Qwen-VL大模型自动识别放入冰箱的物品
-- **智能存储**: 根据物品类型自动选择最佳存储温度和位置
-- **过期提醒**: 自动计算保质期，提醒即将过期的物品
-- **硬件控制**: 支持GPIO按钮控制，实现物理交互
-- **实时监控**: Web界面实时显示冰箱状态和物品信息
+## 系统架构
 
-### 硬件支持
-- **摄像头**: 支持内部和外部摄像头，用于物品识别和人脸检测
-- **按钮**: GPIO 16(绿色)用于放入物品，GPIO 17(红色)用于取出物品
-- **接近传感器**: 检测用户接近，提供个性化推荐
+### 核心组件
 
-### 界面特性
-- **响应式设计**: 适配桌面和移动设备
-- **实时更新**: 使用Server-Sent Events (SSE)实现实时数据更新
-- **直观显示**: 2层6扇区冰箱布局，清晰显示物品位置
-- **智能推荐**: 基于时间和物品状态提供个性化建议
+1. **核心系统调度器** (`Agent/core_system.py`)
+   - 系统的中央控制器
+   - 负责事件分发和模块协调
+   - 提供事件总线机制
 
-## 📋 系统要求
+2. **硬件管理器** (`Sensor/hardware_manager.py`)
+   - 统一管理所有外设硬件
+   - 支持GPIO按钮、摄像头、人脸检测
+   - 提供硬件抽象接口
 
-### 硬件要求
-- 树莓派 4B (推荐)
-- 摄像头模块
-- GPIO按钮 (可选)
-- 接近传感器 (可选)
+3. **AI处理器** (`Agent/ai_processor.py`)
+   - 专门处理AI相关功能
+   - 图像识别（Qwen-VL）
+   - 智能推荐系统
 
-### 软件要求
-- Python 3.8+
+4. **Web服务管理器** (`Agent/web_manager.py`)
+   - 处理Web界面和API服务
+   - 提供RESTful API
+   - 实时事件推送
+
+5. **系统启动器** (`Agent/system_launcher.py`)
+   - 统一启动和管理所有模块
+   - 系统监控和健康检查
+   - 优雅关闭处理
+
+### 硬件组件
+
+- **两个按钮**:
+  - GPIO 16: 绿色按钮 - 放入物品
+  - GPIO 17: 红色按钮 - 取出物品
+
+- **两个摄像头**:
+  - 内部摄像头 (Camera 0): 用于物品识别
+  - 外部摄像头 (Camera 1): 用于人脸检测
+
+## 快速开始
+
+### 环境要求
+
+- Python 3.7+
 - OpenCV
 - Flask
-- RPi.GPIO
-- 阿里云DashScope API密钥
+- RPi.GPIO (在Raspberry Pi上)
+- 摄像头设备
 
-## 🛠️ 安装说明
+### 安装依赖
 
-### 1. 克隆项目
 ```bash
-git clone <repository-url>
-cd Hackathon-V3
+pip install opencv-python flask dashscope numpy
 ```
 
-### 2. 安装依赖
+### 启动系统
+
 ```bash
-pip install -r requirements.txt
-```
+# 启动新系统
+python start_new_system.py
 
-### 3. 配置API密钥
-在`Agent/ai_processor.py`中设置你的DashScope API密钥：
-```python
-os.environ['DASHSCOPE_API_KEY'] = 'your-api-key-here'
-```
-
-### 4. 配置硬件 (可选)
-如果使用GPIO按钮，确保正确连接：
-- GPIO 16: 绿色按钮 (放入物品)
-- GPIO 17: 红色按钮 (取出物品)
-
-## 🚀 启动系统
-
-### 快速启动
-```bash
-python start.py
-```
-
-### 直接启动
-```bash
+# 或者直接启动系统启动器
 python Agent/system_launcher.py
 ```
 
-### 访问Web界面
-打开浏览器访问: `http://localhost:8080`
+### 测试系统
 
-## 📖 使用说明
+```bash
+# 运行架构测试
+python test_new_architecture.py
+```
 
-### Web界面操作
+## 功能特性
 
-#### 1. 放入物品
-- 点击"放入物品"按钮
-- 选择图片文件
-- 系统自动识别物品并分配到合适位置
+### 1. 物品管理
+- 自动物品识别和分类
+- 智能温度层分配
+- 过期时间管理
+- 库存状态监控
 
-#### 2. 取出物品
-- 点击物品卡片上的"取出"按钮
-- 或使用红色物理按钮触发选择弹窗
+### 2. 智能推荐
+- 基于过期时间的推荐
+- 个性化使用建议
+- 实时状态提醒
 
-#### 3. 查看状态
-- 实时查看冰箱使用情况
-- 监控物品保质期
-- 查看智能推荐
+### 3. 人脸检测
+- 接近传感器功能
+- 个性化问候
+- 智能推荐触发
 
-### 硬件操作
+### 4. Web界面
+- 实时库存显示
+- 过期进度条
+- 温度层信息
+- 事件通知
 
-#### 绿色按钮 (GPIO 16)
-- 按下后自动拍照
-- AI识别物品并添加到冰箱
+## 事件驱动架构
 
-#### 红色按钮 (GPIO 17)
-- 按下后显示物品选择弹窗
-- 用户可选择要取出的物品
+系统采用事件驱动架构，主要事件类型：
 
-## 🏗️ 项目结构
+- `BUTTON_PRESS`: 按钮事件
+- `CAMERA_CAPTURE`: 拍照事件
+- `ITEM_PLACED`: 物品放置事件
+- `ITEM_TAKEN`: 物品取出事件
+- `PROXIMITY_SENSOR`: 接近传感器事件
+
+## 开发模式
+
+### 硬件模拟器
+
+在没有实际硬件的情况下，可以使用硬件模拟器进行测试：
+
+```python
+from Sensor.hardware_simulator import hardware_simulator, ButtonType
+
+# 模拟按钮按下
+hardware_simulator.simulate_button_press(ButtonType.PLACE_ITEM)
+
+# 模拟人脸检测
+hardware_simulator.simulate_face_detection()
+```
+
+### 调试模式
+
+```bash
+# 启用调试模式
+python Agent/system_launcher.py --debug
+```
+
+## 文件结构
 
 ```
-Hackathon-V3/
-├── Agent/                    # 核心AI和Web服务
-│   ├── ai_processor.py      # AI图像识别处理器
-│   ├── web_manager.py       # Web服务管理器
+HackathonV2/
+├── Agent/                    # 核心业务模块
 │   ├── core_system.py       # 核心系统调度器
+│   ├── ai_processor.py      # AI处理器
+│   ├── web_manager.py       # Web服务管理器
 │   ├── system_launcher.py   # 系统启动器
-│   ├── templates/           # Web模板
-│   └── fridge_inventory_qwen.json  # 冰箱数据
-├── Sensor/                   # 硬件管理
-│   └── hardware_manager.py  # 硬件管理器
-├── uploads/                  # 上传的图片文件
-├── logs/                     # 系统日志
-└── requirements.txt          # 依赖包列表
+│   └── templates/           # Web模板
+├── Sensor/                   # 硬件管理模块
+│   ├── hardware_manager.py  # 硬件管理器
+│   └── hardware_simulator.py # 硬件模拟器
+├── uploads/                  # 上传文件目录
+├── logs/                     # 日志目录
+├── start_new_system.py      # 系统启动脚本
+├── test_new_architecture.py # 架构测试脚本
+└── ARCHITECTURE.md          # 详细架构文档
 ```
 
-## 🔧 配置说明
+## API接口
 
-### 冰箱配置
-系统默认配置为2层6扇区冰箱：
-- **第0层**: -5°C (冷冻层)
-- **第1层**: 4°C (冷藏层)
+### Web API
 
-### 温度选择规则
-- **水果、蔬菜、乳制品、谷物、烘焙、饮料**: 4°C (第1层)
-- **肉类、海鲜**: -5°C (第0层)
-- **冰淇淋、冷冻食品**: -5°C (第0层)
-- **非食物物品**: 4°C (第1层)
+- `GET /api/fridge-status`: 获取冰箱状态
+- `GET /api/recommendations`: 获取推荐
+- `POST /api/physical-button`: 物理按钮事件
+- `POST /api/proximity-sensor`: 接近传感器事件
+- `GET /api/system-status`: 获取系统状态
 
-### 保质期规则
-- **水果**: 3-7天
-- **蔬菜**: 5-10天
-- **肉类**: 7-30天
-- **乳制品**: 7-14天
-- **谷物**: 3-7天
-- **海鲜**: 3-7天
-- **烘焙**: 3-7天
-- **饮料**: 7-14天
-- **非食物物品**: 长期保存
+### 事件API
 
-## 🐛 故障排除
+- `EventType.BUTTON_PRESS`: 按钮事件
+- `EventType.CAMERA_CAPTURE`: 拍照事件
+- `EventType.ITEM_PLACED`: 物品放置事件
+- `EventType.ITEM_TAKEN`: 物品取出事件
+- `EventType.PROXIMITY_SENSOR`: 接近传感器事件
+
+## 监控和日志
+
+- 系统日志: `logs/system.log`
+- Web界面: `http://localhost:8080`
+- 系统状态API: `/api/system-status`
+
+## 故障排除
 
 ### 常见问题
 
-#### 1. 摄像头无法识别
-- 检查摄像头连接
-- 确认摄像头权限设置
-- 查看系统日志获取详细错误信息
+1. **硬件管理器不可用**
+   - 检查GPIO权限
+   - 确认摄像头连接
+   - 查看硬件日志
 
-#### 2. Web界面无法访问
-- 确认系统已启动
-- 检查端口8080是否被占用
-- 查看防火墙设置
+2. **AI识别失败**
+   - 检查API密钥
+   - 确认网络连接
+   - 验证图片格式
 
-#### 3. AI识别失败
-- 检查API密钥配置
-- 确认网络连接正常
-- 查看AI处理器日志
+3. **Web服务无法访问**
+   - 检查端口占用
+   - 确认防火墙设置
+   - 查看Web日志
 
-#### 4. 硬件按钮无响应
-- 检查GPIO连接
-- 确认按钮权限设置
-- 查看硬件管理器日志
+## 贡献指南
 
-### 日志查看
-```bash
-# 查看系统日志
-tail -f logs/system.log
+1. Fork 项目
+2. 创建功能分支
+3. 提交更改
+4. 推送到分支
+5. 创建 Pull Request
 
-# 查看实时日志
-journalctl -f -u fridge-system
-```
+## 许可证
 
-## 🔄 开发说明
-
-### 添加新功能
-1. 在相应模块中添加功能代码
-2. 注册事件处理器 (如需要)
-3. 更新Web界面 (如需要)
-4. 测试功能完整性
-
-### 修改冰箱配置
-编辑`Agent/ai_processor.py`中的配置参数：
-```python
-self.total_levels = 2  # 层数
-self.sections_per_level = 6  # 每层扇区数
-self.temperature_levels = {...}  # 温度配置
-```
-
-### 自定义AI提示词
-修改`Agent/ai_processor.py`中的`_get_recognition_prompt()`方法。
-
-## 📄 许可证
-
-本项目采用MIT许可证。详见LICENSE文件。
-
-## 🤝 贡献
-
-欢迎提交Issue和Pull Request来改进项目！
-
-## 📞 联系方式
-
-如有问题或建议，请通过以下方式联系：
-- 提交GitHub Issue
-- 发送邮件至项目维护者
+本项目采用 MIT 许可证。
 
 ---
 
-**注意**: 本项目需要阿里云DashScope API密钥才能正常使用AI识别功能。请确保在运行前正确配置API密钥。 
+*更多详细信息请参考 [ARCHITECTURE.md](ARCHITECTURE.md)* 
